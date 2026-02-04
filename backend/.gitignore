@@ -1,3 +1,14 @@
+.env
+.venv
+
+logs
+pg_data
+redis_data
+certs
+postgres
+config
+.xlsx
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
