@@ -1,0 +1,24 @@
+.main-header {
+  position: sticky;
+  top: 0;
+  height: 90px;
+  background-color: #1e293b;
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+}
+
+.header-burger {
+  margin-left: 132px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.header-burger span {
+  width: 46px;
+  height: 5px;
+  background-color: #f8fafc;
+  border-radius: 5px;
+}

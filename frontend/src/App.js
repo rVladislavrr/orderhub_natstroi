@@ -1,10 +1,13 @@
 import './App.css';
+import Header from './components/Header/Header';
+import OrdersPage from './pages/OrdersPage/OrdersPage';
 
 function App() {
   return (
-    <>
-      qweqwe
-    </>
+    <div>
+      <Header />
+      <OrdersPage />
+    </div>
   );
 }
 
