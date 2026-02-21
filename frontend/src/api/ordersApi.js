@@ -8,7 +8,9 @@ const api = axios.create({
   timeout: 10000,
 });
 
-export const getOrders = async () => {
-  const response = await api.get('/orders');
+export const getOrders = async (page, limit = 5) => {
+  const response = await api.get('/orders', {
+    params: { page, limit },
+  });
   return response.data;
 };

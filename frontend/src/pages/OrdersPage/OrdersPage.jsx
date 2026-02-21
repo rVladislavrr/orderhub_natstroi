@@ -1,24 +1,8 @@
-import { useEffect, useState } from 'react';
-import { getOrders } from '../../services/ordersApi';
-import { toast } from 'react-toastify';
 import './OrdersPage.css';
+import useInfiniteOrders from '../../hooks/useInfiniteOrders';
 
 const OrdersPage = () => {
-  const [orders, setOrders] = useState([]);
-
-  const fetchOrders = async () => {
-    try {
-      const data = await getOrders();
-      setOrders(data);
-      console.log(data);
-    } catch (err) {
-      toast(err);
-    }
-  };
-
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+  const { orders, loading, lastElementRef, hasMore } = useInfiniteOrders();
 
   function getStatusColor(status) {
     switch (status) {
@@ -37,27 +21,31 @@ const OrdersPage = () => {
 
   return (
     <div className="orders-page">
-      {orders.length === 0 ? (
-        <p>Заказов пока нет</p>
-      ) : (
-        orders.map((order) => (
+      {orders.length === 0 && !loading && <p>Заказов пока нет</p>}
+
+      {orders.map((order, index) => {
+        const isLastElement = index === orders.length - 1;
+
+        return (
           <div
             className="order-card"
             key={order.uuid}
+            ref={isLastElement ? lastElementRef : null}
           >
             <div
               className="card-status-bar"
               style={{ backgroundColor: getStatusColor(order.status) }}
             ></div>
+
             <div className="card-content">
               <div className="first-r-order-card">
                 <div className="card-left">
                   <h1 className="card-order-num">Заказ №{order.internal_num_orders}</h1>
                   <p className="card-date">от {order.internal_create_date}</p>
                 </div>
-
                 <p className="card-name">{order.name}</p>
               </div>
+
               <div className="card-inner-order-num">
                 <p>
                   <span className="label">Номер заказа:</span> {order.num_orders}
@@ -66,6 +54,7 @@ const OrdersPage = () => {
                   <span className="label">Номер проекта:</span> {order.num_project}
                 </p>
               </div>
+
               <div
                 className="order-status"
                 style={{ backgroundColor: getStatusColor(order.status) }}
@@ -74,7 +63,16 @@ const OrdersPage = () => {
               </div>
             </div>
           </div>
-        ))
+        );
+      })}
+
+      {loading && <p className="orders-loading-text">Загрузка...</p>}
+
+      {!loading && hasMore && orders.length > 0 && (
+        <div
+          ref={lastElementRef}
+          style={{ height: '10px' }}
+        />
       )}
     </div>
   );
