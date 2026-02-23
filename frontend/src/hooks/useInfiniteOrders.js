@@ -7,6 +7,7 @@ const useInfiniteOrders = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const [initLoadDone, setInitLoadDone] = useState(false);
 
   const observer = useRef();
@@ -21,7 +22,8 @@ const useInfiniteOrders = () => {
       setOrders((prev) => [...prev, ...data.orders]);
       setHasMore(data.pagination.has_more);
       setPage((prev) => prev + 1);
-    } catch (error) {
+    } catch {
+      setError(true);
       toast.error('Не удалось загрузить заказы');
     } finally {
       setLoading(false);
@@ -50,7 +52,7 @@ const useInfiniteOrders = () => {
         {
           root: null,
           rootMargin: '0px',
-          threshold: 0.5,
+          threshold: 1,
         },
       );
 
@@ -59,7 +61,7 @@ const useInfiniteOrders = () => {
     [fetchOrders, hasMore, loading],
   );
 
-  return { orders, loading, lastElementRef, hasMore };
+  return { orders, loading, lastElementRef, hasMore, error };
 };
 
 export default useInfiniteOrders;

@@ -1,100 +1,33 @@
 .orders-page {
-  margin-top: 93px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 28px;
-  margin-bottom: 93px;
+  margin: 3px 0 93px 0;
 }
 
-.order-card {
-  position: relative;
+.orders-actions {
+  font-family: 'Inter', sans-serif;
   display: flex;
   width: 1240px;
-  height: 200px;
-  background-color: #fff;
-  border-radius: 7px;
-  box-sizing: border-box;
-  font-family: 'Inter', sans-serif;
-  box-shadow: 0px 8px 20px 0px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-}
-
-.card-status-bar {
-  width: 14px;
-  height: 100%;
-  border-radius: 7px 0 0 7px;
-}
-
-.card-content {
-  flex: 1;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-.first-r-order-card {
-  display: flex;
-  align-items: baseline;
+  height: 90px;
   justify-content: space-between;
-}
-
-.card-left {
-  display: flex;
-  align-items: baseline;
-  gap: 15px;
-}
-
-.card-order-num,
-.card-date,
-.card-name {
-  margin: 0;
-}
-
-.card-order-num {
-  font-size: 34px;
-  font-weight: 600;
-  margin: 18px 0 0 38px;
-}
-
-.card-date {
-  font-size: 18px;
-  color: rgba(30, 41, 59, 0.5);
-}
-
-.card-name {
-  font-size: 28px;
-  margin: 18px 38px 0 0;
-}
-
-.card-inner-order-num {
-  margin: 5px 0 0 38px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.card-inner-order-num p {
-  margin: 0;
-  font-size: 16px;
-}
-
-.label {
-  color: rgba(30, 41, 59, 0.5);
-}
-
-.order-status {
-  position: absolute;
-  right: 32px;
-  bottom: 24px;
-  width: 200px;
-  height: 40px;
-  border-radius: 7px;
-
-  display: flex;
-  justify-content: center;
   align-items: center;
+}
 
-  color: white;
-  font-size: 20px;
+.create-order {
+  font-family: 'Inter', sans-serif;
+  background-color: #f8fafc;
+  border: 1px solid black;
+  border-radius: 5px;
+  width: 140px;
+  height: 34px;
+  cursor: pointer;
+}
+
+.nan-orders {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  color: rgba(30, 41, 59, 0.7);
+  margin-top: 14%;
 }
