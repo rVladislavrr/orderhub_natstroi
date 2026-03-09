@@ -2,16 +2,19 @@ import './OrdersPage.css';
 import useInfiniteOrders from '../../hooks/useInfiniteOrders';
 import LoadingDots from '../../components/LoadingDots/LoadingDots';
 import OrderCard from '../../components/OrderCard/OrderCard';
+import { Link } from 'react-router-dom';
 
 const OrdersPage = () => {
-  const { orders, loading, lastElementRef, hasMore, error } = useInfiniteOrders();
+  const { orders, loading, lastElementRef, hasMore, error, } = useInfiniteOrders();
 
   return (
     <div className="orders-page">
       <div className="orders-actions">
         <p>фильтрация</p>
         <p>сортировка</p>
-        <button className="create-order">Добавить заказ</button>
+        <Link to={`/create-order`}>
+          <button className="create-order">Добавить заказ</button>
+        </Link>
       </div>
 
       {!loading && error ? <p className="nan-orders">Что-то пошло не так O_o</p> : orders.length === 0 && !loading && !error ? <p className="nan-orders">Заказов пока нет</p> : null}
