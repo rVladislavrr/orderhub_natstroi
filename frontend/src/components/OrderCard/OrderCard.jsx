@@ -1,24 +1,13 @@
+import { getStatusColor } from '../../utils/statusUtils';
 import './OrderCard.css';
 
-const OrderCard = ({ order, isLastElement, lastElementRef }) => {
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'В разработке':
-        return '#004e8d';
-      case 'Новый':
-        return '#009ED8';
-      case 'Отменен':
-        return '#000000';
-      case 'Завершен':
-        return '#A3ABB2';
-      default:
-        return '#009ED8';
-    }
-  };
+const OrderCard = ({ order, isLastElement, lastElementRef, onClick }) => {
   return (
     <div
       className="order-card"
       ref={isLastElement ? lastElementRef : null}
+      onClick={onClick}
+      style={{ cursor: 'pointer' }}
     >
       <div
         className="card-status-bar"

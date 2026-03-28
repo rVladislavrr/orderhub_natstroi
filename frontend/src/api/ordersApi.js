@@ -25,11 +25,51 @@ export const createOrder = async (orderData) => {
   }
 };
 
-export const uploadFile = async (file) => {
+export const uploadOrderFile = async (orderId, file) => {
   try {
-    const response = await axios.post('/orders/upload');
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post(`/orders/${orderId}/upload`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   } catch (error) {
     console.error('error', error);
+    throw error;
   }
-}
+};
+
+export const getOrderInfo = async (uuid) => {
+  try {
+    const response = await api.get(`/orders/${uuid}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Ошибка при получении заказа ${uuid}:`, error);
+    throw error;
+  }
+};
+
+export const getOrderMarks = async (uuid, page, limit = 200) => {
+  try {
+    const response = await api.get(`/kmd/${uuid}/marks`, {
+      params: { page, limit },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Ошибка при получении марок для заказа ${uuid}:`, error);
+    throw error;
+  }
+};
+
+export const getMarkDetails = async (markId) => {
+  try {
+    const response = await api.get(`/marks/${markId}/details`);
+    return response.data;
+  } catch (error) {
+    console.error(`Ошибка при получении деталей марки ${markId}:`, error);
+    throw error;
+  }
+};

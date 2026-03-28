@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import './App.css';
 import Header from './components/Header/Header';
 import OrdersPage from './pages/OrdersPage/OrdersPage';
@@ -12,7 +12,7 @@ function App() {
       <Header />
       <Routes>
         <Route
-          path="/"
+          path="/orders"
           element={<OrdersPage />}
         />
 
@@ -22,8 +22,18 @@ function App() {
         />
 
         <Route
-          path="/order"
+          path="/orders/:orderNum"
           element={<OrderDetailsPage />}
+        />
+
+        <Route
+          path="/"
+          element={
+            <Navigate
+              to="/orders"
+              replace
+            />
+          }
         />
       </Routes>
       <ToastContainer

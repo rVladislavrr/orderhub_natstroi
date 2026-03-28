@@ -1,3 +1,11 @@
+.loading-dots-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 70vh;
+  width: 100%;
+}
+
 .loading-dots {
   display: flex;
   gap: 8px;

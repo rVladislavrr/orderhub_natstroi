@@ -20,6 +20,7 @@ const CreateOrderPage = () => {
     }
 
     setErrors({});
+
     const orderData = {
       internal_num_orders: parseInt(formData.get('internalNumOrders')),
       internal_create_date: formData.get('internalCreateDate'),
@@ -29,9 +30,9 @@ const CreateOrderPage = () => {
     };
 
     try {
-      const newOrder = await createOrder(orderData);
-      toast.success('asdasdasd');
-      navigate('/');
+      await createOrder(orderData);
+      toast.success('Заказ успешно создан!');
+      navigate('/orders');
     } catch (error) {
       console.error('Ошибка при добавлении заказа', error);
     }
