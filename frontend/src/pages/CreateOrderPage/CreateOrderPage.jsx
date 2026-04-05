@@ -155,7 +155,7 @@ const CreateOrderPage = () => {
           <button
             type="button"
             className="btn-create-order-cancel"
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/orders')}
           >
             Отмена
           </button>

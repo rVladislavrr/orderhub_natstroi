@@ -17,8 +17,6 @@ const OrdersPage = () => {
   return (
     <div className="orders-page">
       <div className="orders-actions">
-        <p>фильтрация</p>
-        <p>сортировка</p>
         <Link to={`/create-order`}>
           <button className="create-order">Добавить заказ</button>
         </Link>

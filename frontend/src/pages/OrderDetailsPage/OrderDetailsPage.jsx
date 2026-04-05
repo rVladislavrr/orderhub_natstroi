@@ -1,22 +1,25 @@
 import { useEffect, useState } from 'react';
 import './OrderDetailsPage.css';
 import { useLocation } from 'react-router-dom';
-import { getOrderInfo, getOrderMarks } from '../../api/ordersApi';
+import { getOrderInfo } from '../../api/ordersApi';
 import LoadingDots from '../../components/LoadingDots/LoadingDots';
-
-import { toast } from 'react-toastify';
 import OrderHeader from './components/OrderHeader';
 import FileUploadSection from './components/FileUploadSection';
 import KmdSection from './components/KmdSection';
+import useInfiniteMarks from '../../hooks/useInfiniteMarks';
 
 const OrderDetailsPage = () => {
   const location = useLocation();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [selectedKmd, setSelectedKmd] = useState(null);
-  const [marks, setMarks] = useState([]);
-  const [marksLoading, setMarksLoading] = useState(false);
+
+  const [sortBy, setSortBy] = useState('title');
+  const [orderBy, setOrderBy] = useState('asc');
+
+  const [activeFilters, setActiveFilters] = useState({});
+
+  const { marks, loading: marksLoading, lastElementRef, resetMarks } = useInfiniteMarks(selectedKmd?.uuid, sortBy, orderBy, activeFilters);
 
   useEffect(() => {
     const fetchOrderInfo = async () => {
@@ -43,26 +46,24 @@ const OrderDetailsPage = () => {
     }));
   };
 
-  const handleKmdClick = async (kmd) => {
+  const handleKmdClick = (kmd) => {
     if (selectedKmd?.uuid === kmd.uuid) {
       setSelectedKmd(null);
-      setMarks([]);
-      return;
-    }
-
-    try {
+      setActiveFilters({});
+      resetMarks();
+    } else {
       setSelectedKmd(kmd);
-      setMarksLoading(true);
-
-      const marksData = await getOrderMarks(kmd.uuid, 1, 20);
-
-      setMarks(marksData.marks || []);
-    } catch (error) {
-      console.error('Ошибка загрузки марок:', error);
-      toast.error('Ошибка при загрузке марок');
-    } finally {
-      setMarksLoading(false);
+      setActiveFilters({});
     }
+  };
+
+  const handleSortChange = async ({ sortBy: newSortBy, orderBy: newOrderBy }) => {
+    setSortBy(newSortBy);
+    setOrderBy(newOrderBy);
+  };
+
+  const handleFilterChange = (newFilters) => {
+    setActiveFilters(newFilters || {});
   };
 
   if (loading) return <LoadingDots />;
@@ -84,6 +85,12 @@ const OrderDetailsPage = () => {
         marks={marks}
         marksLoading={marksLoading}
         onKmdClick={handleKmdClick}
+        onSortChange={handleSortChange}
+        sortBy={sortBy}
+        orderBy={orderBy}
+        lastElementRef={lastElementRef}
+        onFilterChange={handleFilterChange}
+        activeFilters={activeFilters}
       />
     </div>
   );

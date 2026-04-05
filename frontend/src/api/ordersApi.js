@@ -5,7 +5,9 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  paramsSerializer: {
+    indexes: null,
+  },
 });
 
 export const getOrders = async (page, limit = 5) => {
@@ -52,14 +54,33 @@ export const getOrderInfo = async (uuid) => {
   }
 };
 
-export const getOrderMarks = async (uuid, page, limit = 200) => {
+export const getOrderMarks = async (kmdUuid, params = {}) => {
   try {
-    const response = await api.get(`/kmd/${uuid}/marks`, {
-      params: { page, limit },
+    const { page = 1, limit = 5, sort_by = 'title', order_by = 'asc', filter_name = null, filter_cooperation = null, filter_mounting_part = null } = params;
+
+    const queryParams = {
+      page,
+      limit,
+      sort_by,
+      order_by,
+    };
+
+    if (filter_name && filter_name.length > 0) {
+      queryParams.filter_name = filter_name;
+    }
+    if (filter_cooperation && filter_cooperation.length > 0) {
+      queryParams.filter_cooperation = filter_cooperation;
+    }
+    if (filter_mounting_part && filter_mounting_part.length > 0) {
+      queryParams.filter_mounting_part = filter_mounting_part;
+    }
+
+    const response = await api.get(`/kmd/${kmdUuid}/marks`, {
+      params: queryParams,
     });
     return response.data;
   } catch (error) {
-    console.error(`Ошибка при получении марок для заказа ${uuid}:`, error);
+    console.error(`Ошибка при получении марок для заказа ${kmdUuid}:`, error);
     throw error;
   }
 };
@@ -70,6 +91,20 @@ export const getMarkDetails = async (markId) => {
     return response.data;
   } catch (error) {
     console.error(`Ошибка при получении деталей марки ${markId}:`, error);
+    throw error;
+  }
+};
+
+export const getMarksFilters = async (kmdUuid, column) => {
+  try {
+    const response = await api.get(`/kmd/${kmdUuid}/filters`, {
+      params: {
+        column: column,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Ошибка при получении фильтров для КМД ${kmdUuid}:`, error);
     throw error;
   }
 };

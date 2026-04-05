@@ -17,12 +17,25 @@
 
 .create-order {
   font-family: 'Inter', sans-serif;
-  background-color: #f8fafc;
+  font-size: 16px;
+  background: none;
   border: 1px solid black;
-  border-radius: 5px;
-  width: 140px;
-  height: 34px;
+  border-radius: 6px;
+  width: 160px;
+  height: 40px;
   cursor: pointer;
+  transition: all 0.3s;
+  background-color: white;
+  color: #1e293b;
+}
+
+.create-order:hover {
+  border-color: #004e8d;
+  background-color: #f1f5f9;
+}
+
+.create-order:active {
+  background-color: #dbe4ed;
 }
 
 .nan-orders {
