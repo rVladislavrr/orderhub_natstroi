@@ -2,7 +2,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 70vh;
+  height: 60vh;
   width: 100%;
 }
 
@@ -40,5 +40,16 @@
   50% {
     transform: scale(1.5);
     opacity: 0.5;
+  }
+}
+
+@media screen and (max-width: 1366px) and (max-height: 768px) {
+  .loading-dots-wrapper {
+    height: 50vh;
+  }
+
+  .loading-dot {
+    width: 7px;
+    height: 7px;
   }
 }

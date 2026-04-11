@@ -22,3 +22,9 @@
   background-color: #f8fafc;
   border-radius: 5px;
 }
+
+@media screen and (max-width: 1366px) and (max-height: 768px) {
+  .main-header {
+    height: 76px;
+  }
+}

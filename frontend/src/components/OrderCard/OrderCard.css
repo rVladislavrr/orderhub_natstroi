@@ -89,3 +89,48 @@
   color: white;
   font-size: 20px;
 }
+
+@media screen and (max-width: 1366px) and (max-height: 768px) {
+  .order-card {
+    width: 800px;
+    height: 160px;
+  }
+
+  .card-status-bar {
+    width: 12px;
+  }
+
+  .card-left {
+    gap: 12px;
+  }
+
+  .card-order-num {
+    font-size: 24px;
+    margin: 14px 0 0 34px;
+  }
+
+  .card-date {
+    font-size: 13px;
+  }
+
+  .card-name {
+    font-size: 20px;
+    margin: 14px 32px 0 0;
+  }
+
+  .card-inner-order-num {
+    margin: 5px 0 0 34px;
+    gap: 8px;
+  }
+
+  .card-inner-order-num p {
+    font-size: 14px;
+  }
+
+  .order-status {
+    width: 160px;
+    height: 34px;
+    font-size: 16px;
+    right: 28px;
+  }
+}

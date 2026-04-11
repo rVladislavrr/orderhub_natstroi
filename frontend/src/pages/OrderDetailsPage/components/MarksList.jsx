@@ -5,15 +5,18 @@ import { toast } from 'react-toastify';
 import LoadingDots from '../../../components/LoadingDots/LoadingDots';
 
 const MarksList = ({ marks, selectedKmd, marksLoading, lastElementRef }) => {
-  const [expandedMarkId, setExpandedMarkId] = useState(null);
+  const [expandedMarkId, setExpandedMarkId] = useState([]);
   const [markDetails, setMarkDetails] = useState({});
   const [detailsLoading, setDetailsLoading] = useState({});
 
   const toggleMark = async (markId) => {
-    if (expandedMarkId === markId) {
-      setExpandedMarkId(null);
+    const isExpanded = expandedMarkId.includes(markId);
+
+    if (isExpanded) {
+      setExpandedMarkId(expandedMarkId.filter((id) => id !== markId));
     } else {
-      setExpandedMarkId(markId);
+      setExpandedMarkId([...expandedMarkId, markId]);
+
       if (!markDetails[markId]) {
         setDetailsLoading((prev) => ({ ...prev, [markId]: true }));
 
@@ -103,7 +106,7 @@ const MarksList = ({ marks, selectedKmd, marksLoading, lastElementRef }) => {
                   </svg>
                 </div>
 
-                {expandedMarkId === mark.id && (
+                {expandedMarkId.includes(mark.id) && (
                   <div className="mark-details">
                     {detailsLoading[mark.id] ? (
                       <LoadingDots />
@@ -155,10 +158,8 @@ const MarksList = ({ marks, selectedKmd, marksLoading, lastElementRef }) => {
                   </div>
                 )}
               </div>
-              
-              {(index + 1) % 5 === 0 && index !== marks.length - 1 && (
-                <div className="marks-separator" />
-              )}
+
+              {(index + 1) % 5 === 0 && index !== marks.length - 1 && <div className="marks-separator" />}
             </React.Fragment>
           ))}
         </div>

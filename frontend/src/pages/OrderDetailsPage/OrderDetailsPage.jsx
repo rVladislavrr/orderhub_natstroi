@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import './OrderDetailsPage.css';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getOrderInfo } from '../../api/ordersApi';
 import LoadingDots from '../../components/LoadingDots/LoadingDots';
 import OrderHeader from './components/OrderHeader';
@@ -9,6 +9,7 @@ import KmdSection from './components/KmdSection';
 import useInfiniteMarks from '../../hooks/useInfiniteMarks';
 
 const OrderDetailsPage = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -66,12 +67,29 @@ const OrderDetailsPage = () => {
     setActiveFilters(newFilters || {});
   };
 
+  const handleOpenPrintQueue = () => {
+    navigate('/print-queue', {
+      state: {
+        kmdList: order.list_kmd,
+      },
+    });
+  };
+
   if (loading) return <LoadingDots />;
   if (!order) return <div>Заказ не найден</div>;
 
   return (
     <div className="order-details-page">
       <OrderHeader order={order} />
+
+      <div className="print-queue-button-container">
+        <button
+          className="print-queue-button"
+          onClick={handleOpenPrintQueue}
+        >
+          Составить очередь на печать
+        </button>
+      </div>
 
       <FileUploadSection
         orderUuid={location.state?.uuid}

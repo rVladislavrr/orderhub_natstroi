@@ -105,6 +105,8 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
             />
           </div>
 
+          <div className='controls-divider' />
+
           <div className="controls-right">
             <div className="filters-inline">
               <span className="filters-label">Фильтровать по: </span>
@@ -136,7 +138,14 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
                 onToggle={() => toggleDropdown('mountingParts')}
               />
             </div>
-            <button className='apply-filters-btn' onClick={handleApplyFilters}>Применить</button>
+          </div>
+          <div>
+            <button
+              className="apply-filters-btn"
+              onClick={handleApplyFilters}
+            >
+              Применить
+            </button>
           </div>
         </div>
       )}

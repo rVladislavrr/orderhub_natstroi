@@ -1,0 +1,12 @@
+.queue-print-page {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  min-height: calc(100vh - 90px);
+  font-family: 'Inter', sans-serif;
+  margin-bottom: 200px;
+}
+
+.main-content {
+  flex: 1;
+}

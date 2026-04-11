@@ -6,13 +6,17 @@ import OrderDetailsPage from './pages/OrderDetailsPage/OrderDetailsPage';
 import CreateOrderPage from './pages/CreateOrderPage/CreateOrderPage';
 import { ToastContainer } from 'react-toastify';
 import HomePage from './pages/HomePage/HomePage';
+import QueuePrintpage from './pages/QueuePrintPage/QueuePrintPage';
 
 function App() {
   return (
     <>
       <Header />
       <Routes>
-        <Route path='' element={<HomePage />} />
+        <Route
+          path=""
+          element={<HomePage />}
+        />
 
         <Route
           path="/orders"
@@ -29,7 +33,8 @@ function App() {
           element={<OrderDetailsPage />}
         />
 
-        
+        <Route path='/print-queue' element={<QueuePrintpage />} />
+
       </Routes>
       <ToastContainer
         position="bottom-right"
