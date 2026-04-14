@@ -1,5 +1,5 @@
-from sqlalchemy import UUID, String, Boolean, Index
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import UUID, String, Boolean, Index, VARCHAR
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 import uuid
 
 from src.models import Base
@@ -7,13 +7,6 @@ from src.models import Base
 
 class Users(Base):
     __tablename__ = 'users'
-
-    __table_args__ = (
-        Index('idx_users_email', 'email'),
-        Index('idx_users_username', 'username'),
-        Index('idx_users_is_active', 'is_active'),
-        Index('idx_users_create_at', 'create_at'),
-    )
 
     uuid: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -31,18 +24,18 @@ class Users(Base):
         comment='Unique username'
     )
 
-    email: Mapped[str] = mapped_column(
-        String(255),
-        unique=True,
-        index=True,
-        nullable=False,
-        comment='Unique email address'
-    )
-
     hash_password: Mapped[str] = mapped_column(
         String(255),
-        nullable=False,
+        nullable=True,
         comment='Hash password'
+    )
+
+    name: Mapped[str] = mapped_column(
+        nullable=False,
+    )
+
+    lastname: Mapped[str] = mapped_column(
+        nullable=False,
     )
 
     is_active: Mapped[bool] = mapped_column(
@@ -51,19 +44,19 @@ class Users(Base):
         nullable=False,
         server_default='true',
         index=True,
-        comment=' Active user'
+        comment='Active user'
     )
 
-    is_verified: Mapped[bool] = mapped_column(
-        Boolean,
+    is_login: Mapped[bool] = mapped_column(
         default=False,
         nullable=False,
-        server_default='false',
-        comment='Verified user or confirmed email'
+        comment='Can the user login?'
     )
 
-    # last_login_at: Mapped[datetime] = mapped_column(
-    #     DateTime(timezone=True),
-    #     nullable=True,
-    #     comment='Дата последнего входа'
-    # )
+    permissions: Mapped[str] = mapped_column(VARCHAR(10), default="", nullable=False)
+
+    work_entries: Mapped[list['RelUserDel']] = relationship(
+        back_populates='user',
+        lazy="select",
+        cascade="all, delete-orphan"
+    )
