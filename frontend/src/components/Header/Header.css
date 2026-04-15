@@ -1,11 +1,10 @@
 .main-header {
-  position: sticky;
-  top: 0;
   height: 90px;
   background-color: #1e293b;
   display: flex;
   align-items: center;
   z-index: 1000;
+  overflow: hidden;
 }
 
 .header-burger {
@@ -21,6 +20,16 @@
   height: 5px;
   background-color: #f8fafc;
   border-radius: 5px;
+}
+
+.page-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #f8fafc;
+  font-size: 24px;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 @media screen and (max-width: 1366px) and (max-height: 768px) {

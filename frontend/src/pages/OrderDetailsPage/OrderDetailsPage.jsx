@@ -71,6 +71,7 @@ const OrderDetailsPage = () => {
     navigate('/print-queue', {
       state: {
         kmdList: order.list_kmd,
+        orderNum: order.internal_num_orders,
       },
     });
   };

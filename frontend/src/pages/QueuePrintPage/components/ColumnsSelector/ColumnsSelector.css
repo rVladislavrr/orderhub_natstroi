@@ -1,50 +1,120 @@
-.columns-section {
-  background-color: #ffffff;
+.columns-bar {
+  background: #fff;
+  padding: 20px;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  width: 1464px;
 }
 
-.columns-section h3 {
-  margin: 0 0 15px 0;
+.columns-bar h3 {
+  margin: 0 0 20px 0;
   color: #1e293b;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
 }
 
-.columns-grid {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  max-width: 100%;
-}
-
-.columns-grid label {
+.test {
   display: flex;
   align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.columns-container {
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+}
+
+.columns-row {
+  display: flex;
   gap: 6px;
-  font-size: 14px;
-  color: #475569;
-  cursor: pointer;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.column-chip {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  background: #f8fafc;
+  cursor: grab;
   white-space: nowrap;
-  transition: color 0.2s;
-}
-
-.columns-grid label:hover {
-  color: #004e8d;
-}
-
-.columns-grid input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-  accent-color: #004e8d;
-}
-
-.columns-grid label {
   user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.column-chip.dragging {
+  opacity: 1 !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  cursor: grabbing;
+  will-change: transform;
+}
+
+.column-chip span {
+  font-size: 14px;
+}
+
+.column-chip:hover {
+  border-color: #004e8d;
+}
+
+.column-chip:active {
+  cursor: grabbing;
+}
+
+.column-chip input {
+  cursor: pointer;
+}
+
+.weight-column-chip--separator {
+  position: relative;
+  margin-left: 14px;
+}
+
+.weight-column-chip--separator::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 22px;
+  background: #cbd5e1;
+}
+
+.weight-column-chip {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  background: #f8fafc;
+  white-space: nowrap;
+  user-select: none;
+  transition: all 0.2s;
+  cursor: default;
+  opacity: 0.9;
+}
+
+.weight-column-chip span {
+  font-size: 14px;
+  cursor: default;
+}
+
+.weight-column-chip input {
+  cursor: pointer;
+}
+
+.weight-column-chip:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  transform: none;
+  box-shadow: none;
 }

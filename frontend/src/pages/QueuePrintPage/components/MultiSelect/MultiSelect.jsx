@@ -3,7 +3,7 @@ import './MultiSelect.css';
 import { getDynamicFilterOptions } from '../../../../api/graphqlApi';
 import { useFilters } from '../../context/FilterContext';
 
-const MultiSelect = ({ label, placeholder, filterField, kmdUuids, filters, localOptions, kmdList }) => {
+const MultiSelect = ({ label, placeholder, filterField, kmdUuids, filters, localOptions, kmdList, singleSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedValues, setSelectedValues] = useState([]);
   const [options, setOptions] = useState([]);
@@ -30,9 +30,9 @@ const MultiSelect = ({ label, placeholder, filterField, kmdUuids, filters, local
       setOptions(localOptions);
       setHasLoaded(true);
     } else {
-      setHasLoaded(false);
       fetchOptions();
     }
+    // eslint-disable-next-line
   }, [isOpen, selectedFilters]);
 
   useEffect(() => {
@@ -42,6 +42,7 @@ const MultiSelect = ({ label, placeholder, filterField, kmdUuids, filters, local
       setSelectedValues(validValues);
       updateFilter(filterField, validValues);
     }
+    // eslint-disable-next-line
   }, [options]);
 
   const fetchOptions = async () => {
@@ -61,7 +62,7 @@ const MultiSelect = ({ label, placeholder, filterField, kmdUuids, filters, local
   };
 
   const handleCheckboxChange = (value) => {
-    const newSelectedValues = selectedValues.includes(value) ? selectedValues.filter((v) => v !== value) : [...selectedValues, value];
+    const newSelectedValues = singleSelect ? (selectedValues.includes(value) ? [] : [value]) : selectedValues.includes(value) ? selectedValues.filter((v) => v !== value) : [...selectedValues, value];
 
     setSelectedValues(newSelectedValues);
     updateFilter(filterField, newSelectedValues);

@@ -2,8 +2,9 @@ import { FilterProvider, useFilters } from '../../context/FilterContext';
 import MultiSelect from '../MultiSelect/MultiSelect';
 import './FiltersSidebar.css';
 
-const FiltersSidebarContent = ({ kmdUuids, kmdList }) => {
+const FiltersSidebarContent = ({ kmdUuids, kmdList, onApply, onReset }) => {
   const kmdNumbers = kmdList?.map((kmd) => ({ value: kmd.num_kmd })) || [];
+  const { selectedFilters } = useFilters();
 
   const filters = [
     {
@@ -11,12 +12,13 @@ const FiltersSidebarContent = ({ kmdUuids, kmdList }) => {
       field: 'kmd_num',
       placeholder: 'Выберите номер КМД',
       useLocalOptions: true,
+      singleSelect: true,
     },
     { label: 'Номер очереди', field: 'que_num', placeholder: 'Выберите номер очереди' },
     { label: 'Марка стали', field: 'steel_grade', placeholder: 'Выберите марку стали' },
-    { label: 'Тип', field: 'type', placeholder: 'Выберите тип' },
-    { label: 'Размер', field: 'size', placeholder: 'Выберите размер' },
-    { label: 'Название марки', field: 'mark_name', placeholder: 'Выберите номер марки' },
+    { label: 'Прокат', field: 'type', placeholder: 'Выберите прокат' },
+    { label: 'Типоразмер проката', field: 'size', placeholder: 'Выберите размер' },
+    { label: 'Название марки', field: 'mark_name', placeholder: 'Выберите название марки' },
     { label: 'Номер детали', field: 'num_detail', placeholder: 'Выберите номер детали' },
     { label: 'Длина (мм)', field: 'length', placeholder: 'Выберите длину' },
   ];
@@ -33,12 +35,23 @@ const FiltersSidebarContent = ({ kmdUuids, kmdList }) => {
           filterField={filter.field}
           kmdList={kmdList}
           localOptions={filter.useLocalOptions ? kmdNumbers : null}
+          singleSelect={filter.singleSelect}
         />
       ))}
 
       <div className="filter-buttons">
-        <button className="apply-btn">Применить</button>
-        <button className="reset-btn">Сбросить</button>
+        <button
+          className="apply-btn"
+          onClick={() => onApply(selectedFilters)}
+        >
+          Применить
+        </button>
+        <button
+          className="reset-btn"
+          onClick={onReset}
+        >
+          Сбросить
+        </button>
       </div>
     </div>
   );

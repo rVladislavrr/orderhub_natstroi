@@ -6,6 +6,7 @@
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   height: fit-content;
+  flex-shrink: 0;
 }
 
 .filters-sidebar h3 {

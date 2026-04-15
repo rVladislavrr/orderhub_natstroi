@@ -886,3 +886,14 @@
   background-color: #e2e8f0;
   display: block;
 }
+
+.print-queue-button {
+  background: none;
+  border: 1px solid #004e8d;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  background-color: #004e8d;
+  color: #f8fafc;
+}
