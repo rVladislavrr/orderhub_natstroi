@@ -65,12 +65,37 @@ services:
 #      - "127.0.0.1:4222:4222"  # только localhost!
 #    networks:
 #      - internal_network
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bkr
+    command: >
+      sh -c "alembic upgrade head &&
+             gunicorn src.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 & taskiq worker src.broker:broker --fs-discover -tp "workers/tasks/*.py""
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+      REDIS_USER_PASSWORD: ${REDIS_USER_PASSWORD}
+      REDIS_HOST: redis
+    env_file:
+      - .env
+    restart: unless-stopped
 
 volumes:
   redis_data:
     driver: local
   postgres_data:
     driver: local
+
 
 #networks:
 #  internal_network:

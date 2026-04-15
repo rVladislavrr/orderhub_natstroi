@@ -1,65 +1,52 @@
-from fastapi import APIRouter, status
+from typing import Dict
+
+from fastapi import APIRouter, Request, Depends, Response, Body, HTTPException, status
+from pydantic import UUID4
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.db.connection import get_async_session
+from src.db.usersManager import usersManager
+from src.shemas.users import UsersRequest, Token, UserAuth, UserTokenCreate, CategoryEnum, LevelEnum, Permission
+from src.utils.auth_jwt import create_tokens
 
 router = APIRouter()
 
 
-@router.post(
-    "/register",
-    response_model=...,
-    status_code=status.HTTP_201_CREATED,
-    responses={
-        201: {
-            "description": "User registered successfully",
-            "headers": {
-                "Set-Cookie": {
-                    "description": "Session cookie",
-                    "schema": {"type": "string"}
-                }
-            },
-            "content": {
-                "application/json": {
-                    "example": {
-                        "success": True,
-                        "message": "Account created successfully",
-                        "data": {
-                            "user": {
-                                "id": "123e4567-e89b-12d3-a456-426614174000",
-                                "email": "user@example.com",
-                                "username": "johndoe",
-                                "is_verified": False,
-                                "created_at": "2024-01-15T10:30:00Z"
-                            },
-                            "session": {
-                                "is_active": True,
-                                "requires_verification": True
-                            }
-                        },
-                        "meta": {
-                            "email_sent": True,
-                            "verification_required": True
-                        }
-                    }
-                }
-            }
-        },
-        400: {"detail": "Invalid input data"},
-        409: {
-            "description": "User already registered",
-            "content": {
-                "application/json": {
-                    "example": {
+@router.post('/login', description='Авторизация или вход пользователя')
+async def login(request: Request,
+                response: Response,
+                user_data: UserAuth,
+                session: AsyncSession = Depends(get_async_session)) -> Token:
+    request_id = request.state.request_id
+    user_inf = await usersManager.authorization(session, user_data, request_id)
+    user_token_inf = UserTokenCreate.model_validate(user_inf, from_attributes=True)
+    return create_tokens(user_token_inf, response)
 
-                        "detail":
-                            {"msg": "User already exists",
-                             'request_id': "12348041802390480"}
 
-                    }
-                }
-            }
-        }
-    },
-    summary="Register new user",
-    description="Creates a new user account with limited session"
-)
-async def register():
-    pass
+@router.post('/users/add_user')
+async def add_user(request: Request, user: UsersRequest, session=Depends(get_async_session)):
+    return await usersManager.create(user, session, request.state.request_id)
+
+
+@router.get('/users/me')
+async def get_user(request: Request, session=Depends(get_async_session)):
+    user_id = request.state.user_id
+    return await usersManager.get(user_id, session, request.state.request_id)
+
+
+def perm_role_write(request: Request):
+    per: Permission = request.state.permissions
+    if per.can_write(CategoryEnum.ROLE):
+        return
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, )
+
+
+@router.put('/users/{user_id}/permissions')
+async def update_permissions(request: Request, user_id: UUID4,
+                             permissions: Dict[CategoryEnum, LevelEnum] = Body(
+                                 ...,
+                                 examples=[{category: LevelEnum.NONE for category in CategoryEnum}]
+                             ),
+                             _=Depends(perm_role_write)
+                             ):
+    return permissions, user_id

@@ -8,7 +8,7 @@ engine = create_async_engine(settings.DATABASE_URL, poolclass=AsyncAdaptedQueueP
                              pool_size=20,
                              max_overflow=5,
                              pool_timeout=300,
-                             pool_recycle=1800
+                             pool_recycle=1800,
                              )
 
 async_session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
