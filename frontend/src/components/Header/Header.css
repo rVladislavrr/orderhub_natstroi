@@ -4,7 +4,6 @@
   display: flex;
   align-items: center;
   z-index: 1000;
-  overflow: hidden;
 }
 
 .header-burger {
@@ -13,6 +12,14 @@
   flex-direction: column;
   gap: 10px;
   cursor: pointer;
+  flex-shrink: 0;
+  width: 46px;
+}
+
+.header-spacer {
+  margin-right: 132px;
+  width: 46px;
+  flex-shrink: 0;
 }
 
 .header-burger span {
@@ -23,16 +30,15 @@
 }
 
 .page-title {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  flex: 1;
+  text-align: center;
   color: #f8fafc;
   font-size: 24px;
   font-weight: 500;
   white-space: nowrap;
 }
 
-@media screen and (max-width: 1366px) and (max-height: 768px) {
+@media screen and (max-width: 1366px) {
   .main-header {
     height: 76px;
   }

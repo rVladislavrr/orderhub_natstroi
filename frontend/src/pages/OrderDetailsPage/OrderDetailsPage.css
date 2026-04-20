@@ -1,6 +1,9 @@
 .order-details-page {
-  width: 1240px;
+  max-width: 1240px;
+  width: 100%;
   margin: 18px auto;
+  padding: 0 24px;
+  box-sizing: border-box;
   font-family: 'Inter', sans-serif;
 }
 
@@ -8,47 +11,55 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 90px;
+  gap: 16px;
+  min-height: 90px;
 }
 
 .title-date-info {
   display: flex;
   align-items: baseline;
   gap: 15px;
+  min-width: 0;
 }
 
 .title-info {
-  font-size: 34px;
+  font-size: clamp(22px, 2.5vw, 34px);
   font-weight: 600;
   margin: 0;
+  white-space: nowrap;
 }
 
 .date-info {
-  font-size: 18px;
+  font-size: clamp(14px, 1.2vw, 18px);
   color: #64748b;
+  white-space: nowrap;
 }
 
 .status-info {
-  width: 200px;
+  width: clamp(150px, 14vw, 200px);
   height: 40px;
   border-radius: 7px;
   display: flex;
   justify-content: center;
   align-items: center;
   color: white;
-  font-size: 20px;
+  font-size: clamp(14px, 1.4vw, 20px);
+  flex-shrink: 0;
 }
 
 .name-info {
-  font-size: 28px;
+  font-size: clamp(18px, 2vw, 28px);
   margin: 0;
   color: #1e293b;
+  overflow: hidden;
+  word-break: break-word;
 }
 
 .order-info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 24px;
   margin: 20px 0 30px 0;
   padding: 20px 0;
   border-top: 2px solid #e2e8f0;
@@ -59,11 +70,12 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
 }
 
 .num-orders-info,
 .num-proj-info {
-  font-size: 18px;
+  font-size: clamp(14px, 1.3vw, 18px);
   margin: 0;
   color: #64748b;
   font-weight: 500;
@@ -74,14 +86,14 @@
   color: #1e293b;
   font-weight: 600;
   margin-left: 12px;
-  font-size: 20px;
+  font-size: clamp(15px, 1.4vw, 20px);
 }
 
 .marks-info {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  text-align: right;
+  flex-shrink: 0;
 }
 
 .marks-info-item {
@@ -89,22 +101,41 @@
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  width: 100%;
 }
 
 .marks-info-label {
-  font-size: 16px;
+  font-size: clamp(13px, 1.1vw, 16px);
   color: #64748b;
   font-weight: 500;
   white-space: nowrap;
 }
 
 .marks-info-value {
-  font-size: 20px;
+  font-size: clamp(15px, 1.4vw, 20px);
   color: #004e8d;
   font-weight: 600;
-  min-width: 100px;
+  min-width: 80px;
   text-align: right;
+}
+
+.print-queue-button-container {
+  margin-bottom: 8px;
+}
+
+.print-queue-button {
+  border: 1px solid #004e8d;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  background-color: #004e8d;
+  color: #f8fafc;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.print-queue-button:hover {
+  background-color: #004176;
 }
 
 /* Секция загрузки файлов */
@@ -132,12 +163,6 @@
   flex: 1;
 }
 
-.files-header-wrapper {
-  width: 620px;
-  padding-left: 24px;
-  margin-left: 30px;
-}
-
 .files-header {
   margin: 0;
   color: #1e293b;
@@ -148,21 +173,26 @@
 .file-upload-main {
   display: flex;
   gap: 30px;
+  flex-wrap: wrap;
 }
 
 .file-upload-left {
   flex: 1;
-  min-width: 500px;
+  min-width: 280px;
 }
 
 .file-upload-controls {
   display: flex;
   gap: 20px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
-.file-input-wrapper {
-  position: relative;
+.files-header-wrapper {
+  flex: 1;
+  min-width: 0;
+  padding-left: 24px;
+  margin-left: 30px;
 }
 
 .file-input-label {
@@ -245,7 +275,8 @@
 
 /* Список файлов */
 .files-list {
-  width: 620px;
+  flex: 1;
+  min-width: 280px;
   border-left: 1px solid #e2e8f0;
   padding-left: 24px;
 }
@@ -489,7 +520,6 @@
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  max-width: calc((100px + 12px) * 11);
 }
 
 .kmd-button {
@@ -500,7 +530,7 @@
   border-radius: 8px;
   cursor: pointer;
   font-weight: 500;
-  font-size: 16px;
+  font-size: clamp(13px, 1.1vw, 16px);
   transition: all 0.4s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   min-width: 100px;
@@ -510,14 +540,11 @@
 
 .kmd-button:hover {
   background-color: #e2e8f0;
-  border-color: #004e8d;
-  color: #004e8d;
 }
 
 .kmd-button.active {
   background-color: #004e8d;
   color: white;
-  border-color: #004e8d;
 }
 
 .kmd-button.active:hover {
@@ -592,20 +619,29 @@
   display: flex;
   gap: 10px;
   align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+  flex: 1;
 }
 
 .mark-title {
   font-weight: bold;
   color: #004e8d;
   min-width: 40px;
+  flex-shrink: 0;
 }
 
 .mark-name {
   color: #475569;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .arrow-icon {
   transition: transform 0.3s ease;
+  flex-shrink: 0;
 }
 
 .arrow-icon.expanded {
@@ -676,26 +712,35 @@
   white-space: nowrap;
 }
 
+/* Контролы сортировки и фильтров */
 .marks-controls {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
   margin: 20px 0;
-  height: 72px;
-  padding: 0 16px;
+  min-height: 72px;
+  padding: 12px 16px;
   background-color: #f8fafc;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
-  flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
+  overflow: visible;
 }
 
 .controls-left {
-  flex: 1;
+  flex-shrink: 0;
+}
+
+.controls-divider {
+  width: 1px;
+  align-self: stretch;
+  background-color: #e2e8f0;
+  flex-shrink: 0;
 }
 
 .controls-right {
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .sort-controls {
@@ -708,30 +753,11 @@
   font-size: 14px;
   font-weight: 500;
   color: #475569;
-}
-
-.sort-select {
-  padding: 8px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  background-color: white;
-  font-size: 14px;
-  color: #1e293b;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.sort-select:hover {
-  border-color: #004e8d;
-}
-
-.sort-select:focus {
-  outline: none;
-  border-color: #004e8d;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .sort-order-button {
-  background: none;
   border: 1px solid #004e8d;
   border-radius: 6px;
   padding: 5px 12px;
@@ -740,10 +766,11 @@
   transition: all 0.3s;
   background-color: #004e8d;
   color: #f8fafc;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .sort-order-button:hover {
-  border-color: #1e293b;
   background-color: #004176;
 }
 
@@ -751,11 +778,10 @@
   transform: scale(0.95);
 }
 
-/* Стили для фильтров */
 .filters-inline {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -763,6 +789,8 @@
   font-size: 14px;
   font-weight: 500;
   color: #475569;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .dropdown-filter {
@@ -775,7 +803,8 @@
   justify-content: space-between;
   gap: 8px;
   padding: 8px 12px;
-  min-width: 180px;
+  min-width: 160px;
+  max-width: 220px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   background-color: white;
@@ -783,6 +812,9 @@
   color: #1e293b;
   cursor: pointer;
   transition: all 0.2s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dropdown-toggle:hover {
@@ -794,11 +826,17 @@
   border-color: #004e8d;
 }
 
+.dropdown-toggle--active {
+  border-color: #004e8d;
+  color: #004e8d;
+}
+
 .dropdown-arrow {
   position: relative;
   width: 16px;
   height: 16px;
   display: inline-block;
+  flex-shrink: 0;
 }
 
 .dropdown-arrow::before {
@@ -822,7 +860,7 @@
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  width: 100%;
+  min-width: 100%;
   max-height: 240px;
   overflow-y: auto;
   background-color: white;
@@ -842,6 +880,7 @@
   color: #1e293b;
   cursor: pointer;
   transition: background 0.2s;
+  white-space: nowrap;
 }
 
 .dropdown-option:hover {
@@ -852,8 +891,20 @@
   cursor: pointer;
 }
 
+.dropdown-count {
+  background-color: #004e8d;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .apply-filters-btn {
-  background: none;
   border: 1px solid #004e8d;
   border-radius: 6px;
   padding: 8px 12px;
@@ -861,15 +912,17 @@
   transition: all 0.3s;
   background-color: #004e8d;
   color: #f8fafc;
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-family: inherit;
+  font-size: 14px;
 }
 
 .apply-filters-btn:hover {
-  border-color: #1e293b;
   background-color: #004176;
 }
 
 .apply-filters-btn:active {
-  background-color: #004e8d;
   transform: scale(0.95);
 }
 
@@ -878,22 +931,4 @@
   background-color: #e2e8f0;
   margin: 16px auto;
   width: 40%;
-}
-
-.controls-divider {
-  width: 1px;
-  height: 72px;
-  background-color: #e2e8f0;
-  display: block;
-}
-
-.print-queue-button {
-  background: none;
-  border: 1px solid #004e8d;
-  border-radius: 6px;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: all 0.3s;
-  background-color: #004e8d;
-  color: #f8fafc;
 }

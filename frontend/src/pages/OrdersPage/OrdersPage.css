@@ -2,23 +2,30 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
   margin: 3px 0 93px 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.orders-container {
+  max-width: 1240px;
+  width: 100%;
+  padding: 0 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin: 0 auto;
 }
 
 .orders-actions {
-  font-family: 'Inter', sans-serif;
   display: flex;
-  width: 1240px;
   height: 90px;
   justify-content: space-between;
   align-items: center;
 }
 
 .create-order {
-  font-family: 'Inter', sans-serif;
   font-size: 16px;
-  background: none;
   border: 1px solid black;
   border-radius: 6px;
   width: 160px;
@@ -39,20 +46,8 @@
 }
 
 .nan-orders {
-  font-family: 'Inter', sans-serif;
   font-size: 18px;
   color: rgba(30, 41, 59, 0.7);
-  margin-top: 14%;
-}
-
-@media screen and (max-width: 1366px) and (max-height: 768px) {
-  .orders-actions {
-    width: 800px;
-  }
-
-  .create-order {
-    font-size: 14px;
-    width: 146px;
-    height: 38px;
-  }
+  margin-top: 20vh;
+  text-align: center;
 }

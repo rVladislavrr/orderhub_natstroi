@@ -1,5 +1,7 @@
 .filters-sidebar {
   width: 300px;
+  min-width: 240px;
+  max-width: 300px;
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
@@ -7,6 +9,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   height: fit-content;
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .filters-sidebar h3 {
@@ -54,4 +57,29 @@
 .reset-btn:hover {
   background-color: #e2e8f0;
   color: #1e293b;
+}
+
+@media screen and (max-width: 1366px) {
+  .filters-sidebar {
+    width: 180px;
+    min-width: 180px;
+    max-width: 200px;
+    padding: 14px;
+  }
+
+  .filters-sidebar h3 {
+    font-size: 15px;
+    margin-bottom: 14px;
+  }
+
+  .apply-btn,
+  .reset-btn {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .filter-buttons {
+    gap: 8px;
+    justify-content: center;
+  }
 }

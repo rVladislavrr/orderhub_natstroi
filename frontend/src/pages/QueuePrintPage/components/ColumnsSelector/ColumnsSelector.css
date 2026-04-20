@@ -1,14 +1,15 @@
 .columns-bar {
   background: #fff;
-  padding: 20px;
+  padding: 20px 4px 20px 4px;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  width: 1464px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .columns-bar h3 {
-  margin: 0 0 20px 0;
+  margin: 0 0 20px 20px;
   color: #1e293b;
   font-size: 18px;
   font-weight: 600;
@@ -19,6 +20,7 @@
   align-items: center;
   gap: 20px;
   width: 100%;
+  min-width: 0;
 }
 
 .columns-container {
@@ -29,16 +31,17 @@
 
 .columns-row {
   display: flex;
-  gap: 6px;
+  gap: clamp(2px, 0.4vw, 6px);
   flex-wrap: nowrap;
   align-items: center;
+  width: 100%;
 }
 
 .column-chip {
   display: flex;
   align-items: center;
-  gap: 3px;
-  padding: 6px 10px;
+  gap: 1px;
+  padding: clamp(4px, 0.4vw, 6px) clamp(6px, 0.7vw, 10px);
   border: 1px solid #cbd5e1;
   border-radius: 16px;
   background: #f8fafc;
@@ -46,7 +49,10 @@
   white-space: nowrap;
   user-select: none;
   transition: all 0.2s;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  justify-content: center;
 }
 
 .column-chip.dragging {
@@ -54,10 +60,6 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   cursor: grabbing;
   will-change: transform;
-}
-
-.column-chip span {
-  font-size: 14px;
 }
 
 .column-chip:hover {
@@ -72,27 +74,56 @@
   cursor: pointer;
 }
 
-.weight-column-chip--separator {
+.chip-label {
   position: relative;
-  margin-left: 14px;
+  font-size: clamp(11px, 1vw, 14px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
-.weight-column-chip--separator::before {
-  content: '';
-  position: absolute;
-  left: -12px;
-  top: 50%;
-  transform: translateY(-50%);
+.chip-label::after {
+  content: attr(data-tooltip);
+  position: fixed;
+  transform: translateX(-100%) translateY(260%);
+  background-color: #1e293b;
+  color: #f8fafc;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  margin-top: -40px;
+}
+
+.chip-label:hover::after {
+  opacity: 1;
+}
+
+.chips-divider {
   width: 1px;
   height: 22px;
   background: #cbd5e1;
+  flex-shrink: 0;
+}
+
+.weight-column-chip--separator {
+  margin-left: 0;
+}
+
+.weight-column-chip--separator::before {
+  display: none;
 }
 
 .weight-column-chip {
   display: flex;
   align-items: center;
-  gap: 3px;
-  padding: 6px 10px;
+  gap: 1px;
+  padding: clamp(4px, 0.4vw, 6px) clamp(6px, 0.7vw, 10px);
   border: 1px solid #cbd5e1;
   border-radius: 16px;
   background: #f8fafc;
@@ -101,11 +132,17 @@
   transition: all 0.2s;
   cursor: default;
   opacity: 0.9;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  justify-content: center;
 }
 
 .weight-column-chip span {
-  font-size: 14px;
-  cursor: default;
+  font-size: clamp(11px, 1vw, 14px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .weight-column-chip input {
@@ -117,4 +154,34 @@
   background: #f8fafc;
   transform: none;
   box-shadow: none;
+}
+
+@media screen and (max-width: 1366px) {
+  .test {
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .test::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .test::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+  }
+
+  .test::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+
+  .test::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  .column-chip span,
+  .weight-column-chip span {
+    font-size: clamp(9px, 1vw, 12px);
+  }
 }

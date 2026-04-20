@@ -22,8 +22,7 @@ const initialColumns = [
   { id: 'itemWeight', label: 'Вес, кг', visible: true },
 ];
 
-const flattenHierarchy = (data, isNumDetailVisible = true) => {
-  const weightField = isNumDetailVisible ? 'totalWeight' : 'totalMarkWeight';
+const flattenHierarchy = (data) => {
   const rows = [];
   const traverse = (node, rowData = {}) => {
     const newRowData = { ...rowData };
@@ -90,8 +89,6 @@ const QueuePrintPage = () => {
     const groupBy = columns
       .filter((c) => c.visible)
       .map((col, index) => {
-        const isNumDetailVisible = columns.some((c) => c.id === 'num_detail' && c.visible);
-
         let fieldId = col.id;
         if (col.id === 'quantity' && !isNumDetailVisible) {
           fieldId = 'mark_quantity';
@@ -103,8 +100,6 @@ const QueuePrintPage = () => {
         };
       });
 
-    console.log(groupBy);
-
     setLoading(true);
 
     try {
@@ -114,13 +109,10 @@ const QueuePrintPage = () => {
         filters: cleanFilters,
         isNumDetailVisible,
       });
-      console.log(result.nodes);
-      const flattenData = flattenHierarchy(result.nodes, columns);
+      const flattenData = flattenHierarchy(result.nodes);
       setTableData(flattenData);
       setTotalWeight(result.statistics.totalWeight);
       setPosCount(result.statistics.totalQuantity);
-      console.log(result.statistics);
-      console.log('Загружено строк:', flattenData.length);
     } catch (error) {
       console.error(error);
       toast.error('Ошибка при загрузке данных');
@@ -141,7 +133,6 @@ const QueuePrintPage = () => {
       }
 
       loadTimeoutRef.current = setTimeout(() => {
-        console.log('Колонки изменились, перезагружаем данные');
         loadData(lastFilters);
       }, 300);
     }

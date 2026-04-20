@@ -1,6 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { uploadOrderFile } from '../../../api/ordersApi';
 import { toast } from 'react-toastify';
+
+const FILE_STATUSES = {
+  'Только добавлен': 'status-new',
+  Обрабатывается: 'status-processing',
+  Обработан: 'status-processed',
+  Ошибочный: 'status-error',
+};
 
 const FileUploadSection = ({ orderUuid, files, onFileUploaded }) => {
   const [uploading, setUploading] = useState(false);
@@ -10,6 +17,7 @@ const FileUploadSection = ({ orderUuid, files, onFileUploaded }) => {
   const toggleErrorDetails = (fileUuid) => {
     setExpandedErrorFile(expandedErrorFile === fileUuid ? null : fileUuid);
   };
+
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
   };
@@ -22,12 +30,8 @@ const FileUploadSection = ({ orderUuid, files, onFileUploaded }) => {
 
     try {
       setUploading(true);
-
       const uploadedFile = await uploadOrderFile(orderUuid, selectedFile);
-      console.log('Файл загружен:', uploadedFile);
-
       onFileUploaded(uploadedFile);
-
       toast.success('Файл успешно загружен!');
       setSelectedFile(null);
 
@@ -41,12 +45,13 @@ const FileUploadSection = ({ orderUuid, files, onFileUploaded }) => {
     }
   };
 
+  const hasFiles = files && files.length > 0;
+
   return (
     <div className="file-upload-section">
       <div className="file-upload-header">
         <p className="file-upload-description">Загрузите файл для создания КМД</p>
-
-        {files && files.length > 0 && (
+        {hasFiles && (
           <div className="files-header-wrapper">
             <h4 className="files-header">Загруженные файлы</h4>
           </div>
@@ -78,6 +83,7 @@ const FileUploadSection = ({ orderUuid, files, onFileUploaded }) => {
               {uploading ? 'Загрузка...' : 'Загрузить'}
             </button>
           </div>
+
           {selectedFile && (
             <div className="selected-file-info">
               <span className="file-icon">📄</span>
@@ -87,62 +93,65 @@ const FileUploadSection = ({ orderUuid, files, onFileUploaded }) => {
           )}
         </div>
 
-        {files && files.length > 0 && (
+        {hasFiles && (
           <div className="files-list">
             <div className="files-scroll">
-              {files.map((file) => (
-                <div key={file.uuid}>
-                  <div
-                    className={`file-item ${file.status === 'Ошибочный' ? 'file-item-error' : ''}`}
-                    onClick={() => file.status === 'Ошибочный' && toggleErrorDetails(file.uuid)}
-                    style={{ cursor: file.status === 'Ошибочный' ? 'pointer' : 'default' }}
-                  >
-                    <div className="file-item-icon">📄</div>
-                    <div className="file-item-info">
-                      <div className="file-item-name-status">
-                        <span className="file-item-name">{file.file_name}</span>
-                        <span className={`file-item-status ${file.status === 'Только добавлен' ? 'status-new' : file.status === 'Обрабатывается' ? 'status-processing' : file.status === 'Обработан' ? 'status-processed' : file.status === 'Ошибочный' ? 'status-error' : ''}`}>{file.status}</span>
-                      </div>
-                      <div className="file-item-meta">
-                        <span className="file-item-size">{(file.file_size / 1024).toFixed(2)} КБ</span>
+              {files.map((file) => {
+                const isError = file.status === 'Ошибочный';
+                const statusClass = FILE_STATUSES[file.status] || '';
+
+                return (
+                  <div key={file.uuid}>
+                    <div
+                      className={`file-item ${isError ? 'file-item-error' : ''}`}
+                      onClick={() => isError && toggleErrorDetails(file.uuid)}
+                      style={{ cursor: isError ? 'pointer' : 'default' }}
+                    >
+                      <div className="file-item-icon">📄</div>
+                      <div className="file-item-info">
+                        <div className="file-item-name-status">
+                          <span className="file-item-name">{file.file_name}</span>
+                          <span className={`file-item-status ${statusClass}`}>{file.status}</span>
+                        </div>
+                        <div className="file-item-meta">
+                          <span className="file-item-size">{(file.file_size / 1024).toFixed(2)} КБ</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {expandedErrorFile === file.uuid && file.comment && file.comment.length > 0 && (
-                    <div className="error-details-panel">
-                      <div className="error-details-header">
-                        <span className="error-details-title">Детали ошибки</span>
-                        <button
-                          className="error-details-close"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setExpandedErrorFile(null);
-                          }}
-                        >
-                          ×
-                        </button>
-                      </div>
-                      <div className="error-details-content">
-                        {file.comment.map((comment, index) => (
-                          <div
-                            key={index}
-                            className="error-details-item"
+                    {expandedErrorFile === file.uuid && file.comment?.length > 0 && (
+                      <div className="error-details-panel">
+                        <div className="error-details-header">
+                          <span className="error-details-title">Детали ошибки</span>
+                          <button
+                            className="error-details-close"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpandedErrorFile(null);
+                            }}
                           >
-                            <div className="error-mark-detail-row">
-                              {comment.mark && (
-                                <div className="error-details-mark">
-                                  <strong>Марка:</strong> {comment.mark}
-                                </div>
-                              )}
-                              {comment.num_details && (
-                                <div className="error-details-num">
-                                  <strong>Деталь:</strong> {comment.num_details}
-                                </div>
-                              )}
-                            </div>
-                            {comment.detail &&
-                              comment.detail.map((detail, idx) => (
+                            ×
+                          </button>
+                        </div>
+                        <div className="error-details-content">
+                          {file.comment.map((comment, index) => (
+                            <div
+                              key={index}
+                              className="error-details-item"
+                            >
+                              <div className="error-mark-detail-row">
+                                {comment.mark && (
+                                  <div className="error-details-mark">
+                                    <strong>Марка:</strong> {comment.mark}
+                                  </div>
+                                )}
+                                {comment.num_details && (
+                                  <div className="error-details-num">
+                                    <strong>Деталь:</strong> {comment.num_details}
+                                  </div>
+                                )}
+                              </div>
+                              {comment.detail?.map((detail, idx) => (
                                 <div
                                   key={idx}
                                   className="error-details-detail"
@@ -150,13 +159,14 @@ const FileUploadSection = ({ orderUuid, files, onFileUploaded }) => {
                                   {detail}
                                 </div>
                               ))}
-                          </div>
-                        ))}
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

@@ -31,10 +31,11 @@ const SortableItem = ({ column, toggle }) => {
         checked={column.visible}
         onChange={() => toggle(column.id)}
       />
-
       <span
         {...attributes}
         {...listeners}
+        className="chip-label"
+        data-tooltip={column.label}
       >
         {column.label}
       </span>
@@ -92,14 +93,17 @@ const ColumnsSelector = ({ columns, setColumns }) => {
               ))}
 
               {weightColumn && (
-                <div className="weight-column-chip weight-column-chip--separator">
-                  <input
-                    type="checkbox"
-                    checked={weightColumn.visible}
-                    onChange={() => toggleColumn(weightColumn.id)}
-                  />
-                  <span>{weightColumn.label}</span>
-                </div>
+                <>
+                  <div className="chips-divider" />
+                  <div className="weight-column-chip">
+                    <input
+                      type="checkbox"
+                      checked={weightColumn.visible}
+                      onChange={() => toggleColumn(weightColumn.id)}
+                    />
+                    <span title={weightColumn.fullLabel}>{weightColumn.label}</span>
+                  </div>
+                </>
               )}
             </div>
           </SortableContext>

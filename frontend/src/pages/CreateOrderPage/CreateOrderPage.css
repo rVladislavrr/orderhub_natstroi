@@ -1,6 +1,9 @@
 .create-order-page {
-  width: 1240px;
+  max-width: 1240px;
+  width: 100%;
   margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
   font-family: 'Inter', sans-serif;
 }
 
@@ -27,16 +30,26 @@
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0px 8px 20px 0px rgba(0, 0, 0, 0.15);
-  margin-top: 10px;
+  margin-top: 14px;
+  margin-bottom: 40px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 32px;
+}
+
+.form-group--full {
+  grid-column: 1 / -1;
+}
+
+.form-group--date input {
+  max-width: 200px;
 }
 
 .form-group {
-  margin-bottom: 24px;
-}
-
-.create-num-date {
-  display: flex;
-  gap: 50px;
+  margin: 0;
 }
 
 .form-group label {
@@ -45,20 +58,27 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-size: 13px;
   color: rgba(30, 41, 59, 0.9);
+}
+
+.form-group label::after {
+  content: '*';
+  color: #dc3545;
+  margin-left: 4px;
+  font-size: 12px;
 }
 
 .form-group input {
   width: 100%;
-  max-width: 280px;
   padding: 12px 16px;
   border: 2px solid #004e8d;
   border-radius: 8px;
   font-size: 15px;
+  font-family: inherit;
   transition: all 0.3s ease;
   background-color: #e0ebf5;
   box-sizing: border-box;
-  font-family: 'Inter', sans-serif;
 }
 
 .form-group input:hover {
@@ -76,7 +96,6 @@
 .form-group input::placeholder {
   color: rgba(30, 41, 59, 0.4);
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
 }
 
 .form-group input[type='number']::-webkit-outer-spin-button,
@@ -85,27 +104,45 @@
   margin: 0;
 }
 
+.form-group input.error {
+  border-color: #dc3545;
+  background-color: #fff8f8;
+}
+
+.form-group input.error:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.1);
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 13px;
+  margin-top: 5px;
+  display: block;
+  font-weight: 400;
+}
+
 .form-actions {
-  display: flex;
-  gap: 60px;
-  margin-top: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 28px;
   padding-top: 20px;
   border-top: 2px solid #004e8d;
 }
 
 .btn-create-order-submit,
 .btn-create-order-cancel {
-  flex: 1;
   padding: 14px 20px;
   border: none;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
+  font-family: inherit;
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  font-family: 'Inter', sans-serif;
 }
 
 .btn-create-order-submit {
@@ -132,92 +169,4 @@
 .btn-create-order-cancel:hover {
   border-color: #dc3545;
   color: #dc3545;
-}
-
-.form-group label::after {
-  content: '*';
-  color: #dc3545;
-  margin-left: 4px;
-  font-size: 12px;
-}
-
-.form-group input.error {
-  border-color: #dc3545;
-  background-color: #fff8f8;
-}
-
-.form-group input.error:focus {
-  border-color: #dc3545;
-  box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.1);
-}
-
-.error-message {
-  color: #dc3545;
-  font-size: 13px;
-  margin-top: 5px;
-  display: block;
-  font-weight: 400;
-}
-
-@media screen and (max-width: 1366px) and (max-height: 768px) {
-  .create-order-page {
-    width: 800px;
-  }
-
-  .create-order-title {
-    margin-top: 24px;
-    font-size: 24px;
-    padding-bottom: 8px;
-  }
-
-  .create-order-title::after {
-    width: 140px;
-  }
-
-  .create-order-form {
-    padding: 26px;
-    margin-top: 8px;
-  }
-
-  .form-group {
-    margin-bottom: 18px;
-  }
-
-  .create-num-date {
-    gap: 44px;
-  }
-
-  .form-group label {
-    margin-bottom: 6px;
-  }
-
-  .form-group input {
-    max-width: 260px;
-    padding: 10px 14px;
-    font-size: 13px;
-  }
-
-  .form-group input::placeholder {
-    font-size: 13px;
-  }
-
-  .form-actions {
-    gap: 40px;
-    margin-top: 26px;
-    padding-top: 16px;
-  }
-
-  .btn-create-order-submit {
-    padding: 12px 16px;
-    font-size: 13px;
-  }
-
-  .btn-create-order-cancel {
-    padding: 12px 16px;
-    font-size: 13px;
-  }
-
-  .error-message {
-    font-size: 11px;
-  }
 }

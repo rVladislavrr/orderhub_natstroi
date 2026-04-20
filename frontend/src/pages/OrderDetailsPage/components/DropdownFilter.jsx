@@ -1,4 +1,21 @@
+import { useEffect, useRef } from 'react';
+
 const DropdownFilter = ({ title, items, selected, onChange, isOpen, onToggle }) => {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        onToggle();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, onToggle]);
+
   const handleCheckboxChange = (value) => {
     if (selected.includes(value)) {
       onChange(selected.filter((item) => item !== value));
@@ -7,13 +24,20 @@ const DropdownFilter = ({ title, items, selected, onChange, isOpen, onToggle }) 
     }
   };
 
+  const selectedCount = selected.length;
+
   return (
-    <div className="dropdown-filter">
+    <div
+      className="dropdown-filter"
+      ref={ref}
+    >
       <button
-        className="dropdown-toggle"
+        type="button"
+        className={`dropdown-toggle ${selectedCount > 0 ? 'dropdown-toggle--active' : ''}`}
         onClick={onToggle}
       >
         {title}
+        {selectedCount > 0 && <span className="dropdown-count">{selectedCount}</span>}
         <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}></span>
       </button>
 

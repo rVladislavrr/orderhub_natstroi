@@ -3,6 +3,7 @@
   min-height: calc(100vh - 90px);
   font-family: 'Inter', sans-serif;
   margin-bottom: 200px;
+  box-sizing: border-box;
 }
 
 .print-page-info {
@@ -12,18 +13,17 @@
 .main-content-wrapper {
   display: flex;
   gap: 10px;
-  width: 1450px;
+  width: 100%;
 }
 
 .main-content {
   flex: 1;
-  margin-right: 160px;
+  min-width: 0;
 }
 
 .print-button {
   display: block;
   margin-left: auto;
-  background: none;
   border: 1px solid #004e8d;
   border-radius: 6px;
   padding: 8px 12px;
@@ -32,6 +32,12 @@
   background-color: #004e8d;
   color: #f8fafc;
   margin-top: 20px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.print-button:hover {
+  background-color: #004176;
 }
 
 .no-data {
@@ -48,19 +54,15 @@
     visibility: hidden;
   }
 
-  .queue-print-page {
-    min-height: auto !important;
-    margin-bottom: 0 !important;
-  }
-
-  html,
-  body {
-    height: auto !important;
-  }
-
   .data-table-container,
-  .data-table-container * {
-    visibility: visible;
+  .data-table-container *,
+  .data-table-container td,
+  .data-table-container th,
+  .data-table-container tr,
+  .data-table-container tbody,
+  .data-table-container thead {
+    visibility: visible !important;
+    color: #000 !important;
   }
 
   .data-table-container {
@@ -68,6 +70,7 @@
     left: 0;
     top: 0;
     width: 100%;
+    border: none;
   }
 
   .print-button {
@@ -78,12 +81,25 @@
     font-size: 12px;
   }
 
+  .data-table td,
+  .data-table th {
+    color: #333 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   .data-table th {
     background-color: #fff !important;
   }
 
-  .data-table-container {
-    border: none;
+  .queue-print-page {
+    min-height: auto !important;
+    margin-bottom: 0 !important;
+  }
+
+  html,
+  body {
+    height: auto !important;
   }
 
   @page {

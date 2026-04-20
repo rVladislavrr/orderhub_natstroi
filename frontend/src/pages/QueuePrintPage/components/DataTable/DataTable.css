@@ -3,13 +3,14 @@
   margin-top: 20px;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
-  width: 1450px;
+  width: 100%;
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  table-layout: fixed;
 }
 
 .data-table th,
@@ -17,6 +18,45 @@
   border: 1px solid #e0e0e0;
   padding: 10px 12px;
   text-align: left;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.col-type {
+  width: 8%;
+}
+.col-steel_grade {
+  width: 8%;
+}
+.col-mark_name {
+  width: 10%;
+}
+.col-size {
+  width: 8%;
+}
+.col-num_detail {
+  width: 8%;
+}
+.col-mark_title {
+  width: 10%;
+}
+.col-length {
+  width: 10%;
+}
+.col-operation {
+  width: 8%;
+}
+.col-mounting_part {
+  width: 8%;
+}
+.col-quantity {
+  width: 6%;
+}
+.col-itemWeight {
+  width: 8%;
 }
 
 .data-table th {
@@ -30,4 +70,43 @@
 .data-table td {
   vertical-align: top;
   color: #333;
+}
+
+@media print {
+  .data-table {
+    font-size: 10px;
+  }
+
+  .data-table th {
+    position: static;
+    background-color: #f5f5f5 !important;
+    word-break: normal;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    color: #333 !important;
+    visibility: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .data-table td {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    color: #333 !important;
+    visibility: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    padding: 5px 6px;
+  }
+
+  .data-table th {
+    padding: 5px 6px;
+  }
+
+  .data-table-container {
+    width: 100% !important;
+    border: none !important;
+    overflow: visible !important;
+    margin-top: 0 !important;
+  }
 }

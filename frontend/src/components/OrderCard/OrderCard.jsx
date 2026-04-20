@@ -7,7 +7,6 @@ const OrderCard = ({ order, isLastElement, lastElementRef, onClick }) => {
       className="order-card"
       ref={isLastElement ? lastElementRef : null}
       onClick={onClick}
-      style={{ cursor: 'pointer' }}
     >
       <div
         className="card-status-bar"
@@ -17,7 +16,7 @@ const OrderCard = ({ order, isLastElement, lastElementRef, onClick }) => {
       <div className="card-content">
         <div className="first-r-order-card">
           <div className="card-left">
-            <h1 className="card-order-num">Заказ №{order.internal_num_orders}</h1>
+            <p className="card-order-num">Заказ №{order.internal_num_orders}</p>
             <p className="card-date">от {order.internal_create_date}</p>
           </div>
           <p className="card-name">{order.name}</p>

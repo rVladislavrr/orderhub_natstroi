@@ -100,3 +100,32 @@
   -moz-user-select: none;
   -ms-user-select: none;
 }
+
+@media screen and (max-width: 1366px) {
+  .multi-select {
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .multi-select label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    font-size: 12px;
+    color: #475569;
+  }
+
+  .multi-select-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    font-size: 12px;
+  }
+}

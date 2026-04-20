@@ -5,23 +5,6 @@ const DataTable = ({ data, columns, weight, posCount }) => {
 
   if (data.length === 0) return null;
 
-  const getColumnWidth = (columnId) => {
-    const widths = {
-      type: '8%',
-      steel_grade: '6%',
-      mark_name: '8%',
-      size: '8%',
-      num_detail: '8%',
-      mark_title: '8%',
-      length: '8%',
-      operation: '8%',
-      mounting_part: '8%',
-      quantity: '4%',
-      itemWeight: '8%',
-    };
-    return widths[columnId] || 'auto';
-  };
-
   const shouldMergeCell = (rowIndex, colId, colIndex) => {
     if (rowIndex === 0) return false;
 
@@ -70,7 +53,7 @@ const DataTable = ({ data, columns, weight, posCount }) => {
             {visibleColumns.map((column) => (
               <th
                 key={column.id}
-                style={{ width: getColumnWidth(column.id) }}
+                className={`col-${column.id}`}
               >
                 {column.label}
               </th>
@@ -88,7 +71,7 @@ const DataTable = ({ data, columns, weight, posCount }) => {
                   <td
                     key={column.id}
                     rowSpan={rowSpan > 1 ? rowSpan : undefined}
-                    style={{ width: getColumnWidth(column.id) }}
+                    className={`col-${column.id}`}
                   >
                     {row[column.id] || '-'}
                   </td>
@@ -96,21 +79,19 @@ const DataTable = ({ data, columns, weight, posCount }) => {
               })}
             </tr>
           ))}
-        </tbody>
-        {weight && (
-          <tfoot style={{ backgroundColor: '#f5f5f5' }}>
-            <tr>
+          {weight !== undefined && weight !== null && (
+            <tr style={{ backgroundColor: '#f5f5f5', fontWeight: 'bold', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
               <td
                 colSpan={visibleColumns.length - 2}
                 style={{ textAlign: 'right', fontWeight: 'bold' }}
               >
                 Общий итог:
               </td>
-              <td style={{ fontWeight: 'bold' }}>{posCount} шт.</td>
-              <td style={{ fontWeight: 'bold' }}>{weight} кг</td>
+              <td>{posCount} шт.</td>
+              <td>{weight} кг</td>
             </tr>
-          </tfoot>
-        )}
+          )}
+        </tbody>
       </table>
     </div>
   );

@@ -29,6 +29,7 @@ const Header = () => {
         <span></span>
       </div>
       <div className="page-title">{getPageTitle()}</div>
+      <div className="header-spacer" />
     </div>
   );
 };
