@@ -36,13 +36,21 @@ class GroupNode:
     level: str  # Название поля по которому группируем
     value: str  # Значение в этой группе
     children: List['GroupNode']
-    details: List[DetailType]
     total_quantity: int
     total_weight: float
     total_count: int  # Количество уникальных позиций
     total_mark_weight: float
-    total_count_marks: int
+    total_quantity_marks: int
 
+@strawberry.type
+class Statistics:
+    total_weight: float
+    total_quantity: int
+
+@strawberry.type
+class ResponseGraph:
+    nodes: List[GroupNode]
+    statistics: Statistics
 
 @strawberry.input
 class GroupByLevel:
@@ -60,15 +68,21 @@ class HierarchyFilters:
     num_detail: Optional[List[str]] = None
     mark_name: Optional[List[str]] = None
     que_num: Optional[List[str]] = None
+    length: Optional[List[int]] = None
+    mounting_part: Optional[List[str]] = None
+
 
     def to_str(self) -> str:
         result = []
         for attr_name in self.__annotations__:
             value = getattr(self, attr_name)
             if value and isinstance(value, list):
+                value = list(map(str, value))
                 result.append(f"{attr_name}={','.join(value)}")
             if value and isinstance(value, str):
                 result.append(f"{attr_name}={value}")
+            if value and isinstance(value, int):
+                result.append(f"{attr_name}={str(value)}")
         return ";".join(result)
 
 

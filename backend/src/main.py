@@ -69,7 +69,7 @@ graphql_app = GraphQLRouter(
 )
 
 
-app.include_router(graphql_app, prefix="/graphql")
+app.include_router(graphql_app, prefix="/graphql", tags=['graphql'])
 
 if __name__ == "__main__":
     uvicorn.run(

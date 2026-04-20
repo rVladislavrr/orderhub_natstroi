@@ -55,7 +55,6 @@ class Permission(BaseModel):
     @field_validator('permissions')
     @classmethod
     def validate_levels(cls, v: str) -> str:
-        # Проверяем, что каждый символ можно преобразовать в LevelEnum
         for c in v:
             if not c.isdigit():
                 raise ValueError(f'Каждый символ должен быть цифрой, получено: {c}')

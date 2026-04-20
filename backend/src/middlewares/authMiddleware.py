@@ -51,7 +51,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
             user = await get_users_payload(token)
             request.state.user_id = user.uuid
             request.state.permissions = user.permissions
-            print(request.state.permissions)
         except HTTPException:
             api_logger.warning(
                 "Failed to auth, token invalid or expired",

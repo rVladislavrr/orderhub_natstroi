@@ -102,7 +102,6 @@ async def get_orders(request: Request,
 @router.get(
     '/{order_id}',
     status_code=status.HTTP_200_OK,
-
 )
 async def get_order(
         request: Request,
