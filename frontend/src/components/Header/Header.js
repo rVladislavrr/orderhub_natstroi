@@ -13,7 +13,7 @@ const Header = () => {
       case '/create-order':
         return 'Создание заказа';
       case '/print-queue':
-        return 'Очередь печати';
+        return 'Печать очереди';
       default:
         if (location.pathname.startsWith('/orders/')) {
           return 'Детали заказа';
