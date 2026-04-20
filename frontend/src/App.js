@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router-dom';
 import './App.css';
 import Header from './components/Header/Header';
 import OrdersPage from './pages/OrdersPage/OrdersPage';
@@ -9,32 +9,32 @@ import HomePage from './pages/HomePage/HomePage';
 import QueuePrintpage from './pages/QueuePrintPage/QueuePrintPage';
 
 function App() {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
   return (
     <>
-      <Header />
+      {!isHomePage && <Header />}
       <Routes>
         <Route
           path=""
           element={<HomePage />}
         />
-
         <Route
           path="/orders"
           element={<OrdersPage />}
         />
-
         <Route
           path="/create-order"
           element={<CreateOrderPage />}
         />
-
         <Route
           path="/orders/:orderNum"
           element={<OrderDetailsPage />}
         />
-
-        <Route path='/print-queue' element={<QueuePrintpage />} />
-
+        <Route
+          path="/print-queue"
+          element={<QueuePrintpage />}
+        />
       </Routes>
       <ToastContainer
         position="bottom-right"

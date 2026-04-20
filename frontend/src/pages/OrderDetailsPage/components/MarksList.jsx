@@ -39,7 +39,7 @@ const MarksList = ({ marks, selectedKmd, marksLoading, lastElementRef }) => {
     <div className="marks-section">
       {!marksLoading && marks.length === 0 && <p className="no-marks">Нет марок для этого КМД</p>}
 
-      {!marksLoading && marks.length > 0 && (
+      {marks.length > 0 && (
         <div className="marks-list">
           {marks.map((mark, index) => (
             <React.Fragment key={mark.id}>
@@ -68,6 +68,7 @@ const MarksList = ({ marks, selectedKmd, marksLoading, lastElementRef }) => {
                       <span>Общий вес:</span>
                       <span>{(mark.quantity * mark.weight).toFixed(1)} кг</span>
                     </div>
+
                     {mark.cooperation && (
                       <>
                         <div className="mark-info-divider" />
@@ -109,7 +110,7 @@ const MarksList = ({ marks, selectedKmd, marksLoading, lastElementRef }) => {
                 {expandedMarkId.includes(mark.id) && (
                   <div className="mark-details">
                     {detailsLoading[mark.id] ? (
-                      <LoadingDots />
+                      <LoadingDots inline />
                     ) : (
                       <div className="details-table-wrapper">
                         <table className="details-table">
@@ -164,7 +165,8 @@ const MarksList = ({ marks, selectedKmd, marksLoading, lastElementRef }) => {
           ))}
         </div>
       )}
-      {marksLoading && <LoadingDots />}
+
+      {marksLoading && <LoadingDots inline />}
     </div>
   );
 };
