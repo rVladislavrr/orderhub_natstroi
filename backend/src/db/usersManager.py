@@ -1,5 +1,6 @@
 import hashlib
 import logging
+from multiprocessing.spawn import set_executable
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
@@ -7,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.base import BaseManager
 from src.models import Users
-from src.shemas.users import UsersCreate, UsersRead, UsersUpdate, UsersRequest
+from src.shemas.users import UsersCreate, UsersRead, UsersUpdate, UsersRequest, Permission
 from src.utils.hash import create_hash
 
 database_logger = logging.getLogger("UsersManager")
@@ -117,6 +118,32 @@ class UsersManager(BaseManager[UsersCreate, UsersRead, UsersUpdate, Users]):
                     "request_id": request_id,
                 }
             )
+
+    @staticmethod
+    async def update_permissions(user_id, new_permission, session: AsyncSession, request_id: str | None = None):
+        try:
+            user = await session.get(Users, user_id)
+            if not user:
+                database_logger.debug(f'{request_id} | Пользователь  не получен')
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+            database_logger.debug(f'{request_id} | Пользователь получен')
+            new_permission = Permission.from_dict(new_permission)
+            user.permissions = new_permission.permissions
+            database_logger.debug(f'{request_id} | Права изменены')
+
+            await session.commit()
+            database_logger.debug(f'{request_id} | Всё сохранено')
+            return UsersRead.model_validate(user, from_attributes=True).permissions.as_dict
+        except HTTPException:
+            raise
+        except Exception as e:
+            database_logger.critical(f'{request_id} | Права не сохранены', exc_info=e)
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='При сохранении прав')
+
+
+
+
 
 
 usersManager = UsersManager()

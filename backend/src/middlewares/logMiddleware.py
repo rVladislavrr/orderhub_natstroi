@@ -1,10 +1,12 @@
 import uuid
 import time
 
+import logging
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+log = logging.getLogger('Логгермидделвеир')
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     max_size = 30 * 1024 * 1024
@@ -17,22 +19,15 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         if "/upload" in request.url.path:
             content_length = request.headers.get('content-length')
             if content_length and int(content_length) > self.max_size:
-                # Отклоняем запрос ДО загрузки файла
                 return JSONResponse(
                     status_code=413,
                     content={"detail": f"File too large. Max size: {self.max_size // (1024 * 1024)} MB"}
                 )
 
-        # if "/admin/" in request.url.path:
-        #     return JSONResponse(status_code=403, content='Forbidden')
-
-        # if ("/public/" in request.url.path
-        #         or request.url.path.endswith("/docs")
-        #         or request.url.path.endswith("/openapi.json")):
-        #     return await call_next(request)
         start_time = time.time()
+        log.info('Начало выполнения запроса')
         res = await call_next(request)
-        print(time.time() - start_time)
+        log.info(f'Конец выполнения запроса, за время { time.time() - start_time}')
         self.c += 1
-        print(self.c)
+        log.info(f'Количество выполненных запросов со старта: {self.c}')
         return res

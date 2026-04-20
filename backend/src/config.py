@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     REDIS_PASSWORD: str
     REDIS_DB_SESSIONS: int = 0
     REDIS_DB_CACHE: int = 1
-    REDIS_EXP: 5
+    REDIS_EXP: int = 5
 
     LOG_LEVEL: str = 'DEBUG'
 
