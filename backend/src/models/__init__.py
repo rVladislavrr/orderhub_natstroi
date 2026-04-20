@@ -1,7 +1,21 @@
 from .base import Base
+from .files import Files
+from .orders import Orders, OrderStatus
 from .users import Users
+from .details import Details
+from .marks import Marks
+from .KMD import KMD
+from .rel_markadet import RelMarkaDel
+from .rel_userdel import RelUserDel
 
 __all__ = [
     'Base',
-    'Users'
+    'Users',
+    'Orders',
+    'Files',
+    "Details",
+    'Marks',
+    'KMD',
+    'RelUserDel',
+    'RelMarkaDel'
 ]
