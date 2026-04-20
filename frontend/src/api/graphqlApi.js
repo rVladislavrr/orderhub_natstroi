@@ -24,14 +24,34 @@ export const getDynamicFilterOptions = async (field, kmdUuids = [], filters = {}
         }
 
         const toCamelCase = (str) => str.replace(/_./g, (match) => match[1].toUpperCase());
-        graphqlFilters[toCamelCase(key)] = filters[key];
+        let value = filters[key];
+
+        if (key === 'length') {
+          value = value.map((v) => {
+            const num = parseFloat(v);
+            return Number.isInteger(num) ? parseInt(v, 10) : num;
+          });
+        }
+
+        graphqlFilters[toCamelCase(key)] = value;
       }
     });
 
     const filtersString =
       Object.keys(graphqlFilters).length > 0
         ? `filters: {${Object.entries(graphqlFilters)
-            .map(([k, v]) => (Array.isArray(v) ? `${k}: [${v.map((val) => `"${val}"`).join(', ')}]` : `${k}: "${v}"`))
+            .map(([k, v]) => {
+              if (Array.isArray(v)) {
+                if (typeof v[0] === 'number') {
+                  return `${k}: [${v.join(', ')}]`;
+                }
+                return `${k}: [${v.map((val) => `"${val}"`).join(', ')}]`;
+              }
+              if (typeof v === 'number') {
+                return `${k}: ${v}`;
+              }
+              return `${k}: "${v}"`;
+            })
             .join(', ')}}`
         : '';
 
@@ -77,14 +97,34 @@ export const getDynamicHierarchy = async ({ groupBy = [], kmdUuids = [], filters
         }
 
         const toCamelCase = (str) => str.replace(/_./g, (match) => match[1].toUpperCase());
-        graphqlFilters[toCamelCase(key)] = filters[key];
+        let value = filters[key];
+
+        if (key === 'length') {
+          value = value.map((v) => {
+            const num = parseFloat(v);
+            return Number.isInteger(num) ? parseInt(v, 10) : num;
+          });
+        }
+
+        graphqlFilters[toCamelCase(key)] = value;
       }
     });
 
     const filtersString =
       Object.keys(graphqlFilters).length > 0
         ? `filters: {${Object.entries(graphqlFilters)
-            .map(([k, v]) => (Array.isArray(v) ? `${k}: [${v.map((val) => `"${val}"`).join(', ')}]` : `${k}: "${v}"`))
+            .map(([k, v]) => {
+              if (Array.isArray(v)) {
+                if (typeof v[0] === 'number') {
+                  return `${k}: [${v.join(', ')}]`;
+                }
+                return `${k}: [${v.map((val) => `"${val}"`).join(', ')}]`;
+              }
+              if (typeof v === 'number') {
+                return `${k}: ${v}`;
+              }
+              return `${k}: "${v}"`;
+            })
             .join(', ')}}`
         : '';
 
