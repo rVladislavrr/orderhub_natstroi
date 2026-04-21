@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import './Header.css';
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { logout } = useAuth();
 
   const getPageTitle = () => {
     switch (location.pathname) {
@@ -25,7 +27,12 @@ const Header = () => {
 
   const handleNavigateToOrders = () => {
     navigate('/orders');
-    setMenuOpen(false); // закрываем меню после перехода
+    setMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    setMenuOpen(false);
+    logout();
   };
 
   return (
@@ -72,34 +79,85 @@ const Header = () => {
       />
 
       <div className={`sidebar ${menuOpen ? 'sidebar--open' : ''}`}>
-        <button
-          className="sidebar-close"
-          onClick={() => setMenuOpen(false)}
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
+        <div className="sidebar-header">
+          <span className="sidebar-brand-name">НАТСТРОЙ</span>
+          <button
+            className="sidebar-close"
+            onClick={() => setMenuOpen(false)}
           >
-            <path
-              d="M18 6L6 18M6 6l12 12"
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
+        <div className="sidebar-divider" />
+
+        <p className="sidebar-nav-label">Навигация</p>
         <nav className="sidebar-nav">
           <button
             className="sidebar-nav-item"
             onClick={handleNavigateToOrders}
           >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line
+                x1="16"
+                y1="13"
+                x2="8"
+                y2="13"
+              />
+              <line
+                x1="16"
+                y1="17"
+                x2="8"
+                y2="17"
+              />
+            </svg>
             Заказы
           </button>
         </nav>
+
+        <button
+          className="sidebar-logout-btn"
+          onClick={handleLogout}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line
+              x1="21"
+              y1="12"
+              x2="9"
+              y2="12"
+            />
+          </svg>
+          Выйти из аккаунта
+        </button>
       </div>
     </>
   );

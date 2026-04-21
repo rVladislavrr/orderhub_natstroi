@@ -7,33 +7,52 @@ import CreateOrderPage from './pages/CreateOrderPage/CreateOrderPage';
 import { ToastContainer } from 'react-toastify';
 import HomePage from './pages/HomePage/HomePage';
 import QueuePrintpage from './pages/QueuePrintPage/QueuePrintPage';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 
 function App() {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+
   return (
-    <>
+    <AuthProvider>
       {!isHomePage && <Header />}
       <Routes>
         <Route
-          path=""
+          path="/"
           element={<HomePage />}
         />
         <Route
           path="/orders"
-          element={<OrdersPage />}
+          element={
+            <ProtectedRoute>
+              <OrdersPage />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/create-order"
-          element={<CreateOrderPage />}
+          element={
+            <ProtectedRoute>
+              <CreateOrderPage />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/orders/:orderNum"
-          element={<OrderDetailsPage />}
+          element={
+            <ProtectedRoute>
+              <OrderDetailsPage />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/print-queue"
-          element={<QueuePrintpage />}
+          element={
+            <ProtectedRoute>
+              <QueuePrintpage />
+            </ProtectedRoute>
+          }
         />
       </Routes>
       <ToastContainer
@@ -48,7 +67,7 @@ function App() {
         pauseOnHover
         theme="colored"
       />
-    </>
+    </AuthProvider>
   );
 }
 
