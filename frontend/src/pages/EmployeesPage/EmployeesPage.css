@@ -1,0 +1,380 @@
+.emp-page {
+  max-width: 1240px;
+  width: 100%;
+  margin: 18px auto;
+  padding: 0 24px;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+.emp-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  min-height: 52px;
+}
+
+.emp-top-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.emp-heading {
+  font-size: clamp(22px, 2.5vw, 34px);
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.emp-total-badge {
+  background-color: #e2e8f0;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+
+.emp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  border: none;
+}
+
+.emp-btn--primary {
+  background-color: #004e8d;
+  color: #f8fafc;
+  border: 1px solid #004e8d;
+}
+
+.emp-btn--primary:hover {
+  background-color: #004176;
+}
+
+.emp-btn--primary:disabled {
+  background-color: #cbd5e1;
+  border-color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.emp-btn--ghost {
+  background-color: transparent;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.emp-btn--ghost:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.emp-btn--ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.emp-table-wrapper {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.emp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.emp-table thead {
+  background-color: #f8fafc;
+}
+
+.emp-table th {
+  padding: 14px 20px;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.emp-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.emp-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.emp-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.emp-status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.emp-status-badge--active {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.emp-status-badge--inactive {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.emp-empty {
+  text-align: center;
+  padding: 60px;
+  color: #94a3b8;
+  font-size: 16px;
+}
+
+.emp-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.emp-page-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: white;
+  color: #1e293b;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emp-page-btn:hover:not(:disabled) {
+  border-color: #004e8d;
+  color: #004e8d;
+}
+
+.emp-page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.emp-page-info {
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+  min-width: 60px;
+  text-align: center;
+}
+
+.emp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: empFadeIn 0.2s ease;
+}
+
+@keyframes empFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.emp-modal {
+  background-color: #ffffff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  animation: empSlideUp 0.25s ease;
+  overflow: hidden;
+}
+
+@keyframes empSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.emp-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 18px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.emp-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.emp-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.emp-modal-close:hover {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+.emp-modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.emp-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.emp-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.emp-form-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.emp-form-input {
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  background-color: #f8fafc;
+  outline: none;
+}
+
+.emp-form-input:focus {
+  border-color: #004e8d;
+  background-color: #ffffff;
+}
+
+.emp-perms-section {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 18px;
+}
+
+.emp-perms-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+}
+
+.emp-perms-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.emp-perm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #e2e8f0;
+  background-color: #f8fafc;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.emp-perm-chip:hover {
+  border-color: #004e8d;
+  color: #004e8d;
+}
+
+.emp-perm-chip--on {
+  background-color: #004e8d;
+  border-color: #004e8d;
+  color: #ffffff;
+}
+
+.emp-perm-chip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #cbd5e1;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+}
+
+.emp-perm-chip--on .emp-perm-chip-dot {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.emp-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+}

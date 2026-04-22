@@ -19,8 +19,8 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-let isRefreshing = false; // флаг чтобы не слать несколько refresh одновременно
-let failedQueue = []; // очередь запросов которые ждут пока обновится токен
+let isRefreshing = false;
+let failedQueue = [];
 
 const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => {

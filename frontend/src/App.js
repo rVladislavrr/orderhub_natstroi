@@ -9,6 +9,7 @@ import HomePage from './pages/HomePage/HomePage';
 import QueuePrintpage from './pages/QueuePrintPage/QueuePrintPage';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
+import EmployeesPage from './pages/EmployeesPage/EmployeesPage';
 
 function App() {
   const location = useLocation();
@@ -51,6 +52,15 @@ function App() {
           element={
             <ProtectedRoute>
               <QueuePrintpage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employees"
+          element={
+            <ProtectedRoute>
+              <EmployeesPage />
             </ProtectedRoute>
           }
         />

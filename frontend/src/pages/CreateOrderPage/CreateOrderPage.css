@@ -1,43 +1,33 @@
 .create-order-page {
   max-width: 1240px;
   width: 100%;
-  margin: 0 auto;
+  margin: 18px auto;
   padding: 0 24px;
   box-sizing: border-box;
   font-family: 'Inter', sans-serif;
 }
 
 .create-order-title {
-  margin-top: 30px;
-  font-size: 28px;
-  padding-bottom: 10px;
-  position: relative;
-}
-
-.create-order-title::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 160px;
-  height: 2px;
-  background-color: #004e8d;
-  border-radius: 2px;
+  font-size: clamp(22px, 2.5vw, 34px);
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 28px 0;
 }
 
 .create-order-form {
-  padding: 30px;
-  background: #ffffff;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
-  box-shadow: 0px 8px 20px 0px rgba(0, 0, 0, 0.15);
-  margin-top: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
   margin-bottom: 40px;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px 32px;
+  gap: 14px 20px;
+  padding: 24px;
 }
 
 .form-group--full {
@@ -49,52 +39,41 @@
 }
 
 .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   margin: 0;
 }
 
 .form-group label {
-  display: block;
-  margin-bottom: 8px;
+  font-size: 13px;
   font-weight: 500;
+  color: #475569;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-size: 13px;
-  color: rgba(30, 41, 59, 0.9);
-}
-
-.form-group label::after {
-  content: '*';
-  color: #dc3545;
-  margin-left: 4px;
-  font-size: 12px;
 }
 
 .form-group input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #004e8d;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  font-size: 15px;
+  font-size: 14px;
+  color: #1e293b;
   font-family: inherit;
-  transition: all 0.3s ease;
-  background-color: #e0ebf5;
+  transition: border-color 0.2s;
+  background-color: #f8fafc;
+  outline: none;
   box-sizing: border-box;
-}
-
-.form-group input:hover {
-  border-color: #003967;
-  background-color: #fff;
+  width: 100%;
 }
 
 .form-group input:focus {
-  outline: none;
   border-color: #004e8d;
   background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(0, 52, 135, 0.3);
 }
 
 .form-group input::placeholder {
-  color: rgba(30, 41, 59, 0.4);
+  color: #94a3b8;
   font-size: 14px;
 }
 
@@ -111,62 +90,59 @@
 
 .form-group input.error:focus {
   border-color: #dc3545;
-  box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.1);
 }
 
 .error-message {
   color: #dc3545;
-  font-size: 13px;
-  margin-top: 5px;
-  display: block;
+  font-size: 12px;
   font-weight: 400;
+  display: block;
 }
 
 .form-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 2px solid #004e8d;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  background-color: #f8fafc;
 }
 
 .btn-create-order-submit,
 .btn-create-order-cancel {
-  padding: 14px 20px;
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
   border-radius: 8px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   font-family: inherit;
   cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
+  transition: all 0.2s;
+  border: none;
 }
 
 .btn-create-order-submit {
-  background: #004e8d;
-  color: white;
-  box-shadow: 0 4px 15px rgba(0, 52, 135, 0.3);
+  background-color: #004e8d;
+  color: #f8fafc;
+  border: 1px solid #004e8d;
 }
 
 .btn-create-order-submit:hover {
-  background-color: #0060af;
+  background-color: #004176;
 }
 
 .btn-create-order-submit:active {
-  transform: translateY(1px);
   background-color: #004e8d;
 }
 
 .btn-create-order-cancel {
-  background: #fff;
-  color: #696c6f;
-  border: 2px solid #696c6f;
+  background-color: transparent;
+  color: #475569;
+  border: 1px solid #e2e8f0;
 }
 
 .btn-create-order-cancel:hover {
-  border-color: #dc3545;
-  color: #dc3545;
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
 }
