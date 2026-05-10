@@ -16,3 +16,13 @@ export const updatePermissions = async (userId, permissions) => {
   const response = await api.put(`/users/${userId}/permissions`, permissions);
   return response.data;
 };
+
+export const updateUser = async (userId, userData) => {
+  const response = await api.put(`/users/${userId}`, userData);
+  return response.data;
+};
+
+export const getUser = async (userId) => {
+  const response = await api.get(`/users/${userId}`);
+  return response.data;
+};

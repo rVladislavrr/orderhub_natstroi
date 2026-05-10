@@ -7,6 +7,7 @@ import OrderHeader from './components/OrderHeader';
 import FileUploadSection from './components/FileUploadSection';
 import KmdSection from './components/KmdSection';
 import useInfiniteMarks from '../../hooks/useInfiniteMarks';
+import usePermission from '../../hooks/usePermissions';
 
 const OrderDetailsPage = () => {
   const navigate = useNavigate();
@@ -22,12 +23,14 @@ const OrderDetailsPage = () => {
 
   const { marks, loading: marksLoading, lastElementRef, resetMarks } = useInfiniteMarks(selectedKmd?.uuid, sortBy, orderBy, activeFilters);
 
+  const hasPermission = usePermission();
+  const canImportExcel = hasPermission('order', 2);
+
   useEffect(() => {
     const fetchOrderInfo = async () => {
       try {
         setLoading(true);
         const uuid = location.state?.uuid;
-
         const data = await getOrderInfo(uuid);
         console.log('Данные:', data);
         setOrder(data);
@@ -92,11 +95,13 @@ const OrderDetailsPage = () => {
         </button>
       </div>
 
-      <FileUploadSection
-        orderUuid={location.state?.uuid}
-        files={order.files}
-        onFileUploaded={handleFileUploaded}
-      />
+      {canImportExcel && (
+        <FileUploadSection
+          orderUuid={location.state?.uuid}
+          files={order.files}
+          onFileUploaded={handleFileUploaded}
+        />
+      )}
 
       <KmdSection
         kmdList={order.list_kmd}

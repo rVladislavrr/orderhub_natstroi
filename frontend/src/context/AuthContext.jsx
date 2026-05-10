@@ -5,6 +5,15 @@ import { loginRequest, logoutRequest } from '../api/authApi';
 
 const AuthContext = createContext(null);
 
+const getRouteByPermissions = (permissions) => {
+  if (!permissions) return '/';
+  if (permissions.order >= 1) return '/orders';
+  if (permissions.queues >= 1) return '/orders';
+  if (permissions.storage >= 1) return '/materials';
+  if (permissions.role >= 1) return '/employees';
+  return '/';
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -46,8 +55,10 @@ export const AuthProvider = ({ children }) => {
     const { accessToken } = data;
     localStorage.setItem('access_token', accessToken);
     api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-    await fetchMe();
-    navigate('/orders');
+    const response = await api.get('/users/me');
+    const me = response.data;
+    setUser(me);
+    navigate(getRouteByPermissions(me.permissions));
   };
 
   return <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>;

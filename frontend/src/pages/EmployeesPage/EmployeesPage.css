@@ -303,6 +303,8 @@
   transition: border-color 0.2s;
   background-color: #f8fafc;
   outline: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .emp-form-input:focus {
@@ -310,6 +312,7 @@
   background-color: #ffffff;
 }
 
+/* Секция прав */
 .emp-perms-section {
   border-top: 1px solid #e2e8f0;
   padding-top: 18px;
@@ -324,17 +327,33 @@
   margin: 0 0 12px 0;
 }
 
-.emp-perms-grid {
+.emp-perms-table {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.emp-perm-chip {
-  display: inline-flex;
+.emp-perms-row {
+  display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 7px 14px;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.emp-perms-row-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  flex: 1;
+}
+
+.emp-perms-row-options {
+  display: flex;
+  gap: 6px;
+}
+
+.emp-perm-option {
+  padding: 5px 14px;
   border-radius: 20px;
   border: 1.5px solid #e2e8f0;
   background-color: #f8fafc;
@@ -346,28 +365,16 @@
   font-family: inherit;
 }
 
-.emp-perm-chip:hover {
-  border-color: #004e8d;
-  color: #004e8d;
+.emp-perm-option:hover {
+  border-color: #94a3b8;
 }
 
-.emp-perm-chip--on {
+.emp-perm-option--0.emp-perm-option--active,
+.emp-perm-option--1.emp-perm-option--active,
+.emp-perm-option--2.emp-perm-option--active {
   background-color: #004e8d;
   border-color: #004e8d;
   color: #ffffff;
-}
-
-.emp-perm-chip-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: #cbd5e1;
-  flex-shrink: 0;
-  transition: background-color 0.2s;
-}
-
-.emp-perm-chip--on .emp-perm-chip-dot {
-  background-color: rgba(255, 255, 255, 0.7);
 }
 
 .emp-modal-footer {
@@ -377,4 +384,88 @@
   padding: 16px 24px;
   border-top: 1px solid #e2e8f0;
   background-color: #f8fafc;
+}
+
+.emp-edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.emp-edit-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #004e8d;
+  color: #004e8d;
+}
+
+.emp-toggles-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.emp-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.emp-toggle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.emp-toggle-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.emp-toggle-hint {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.emp-toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  border: none;
+  background-color: #e2e8f0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.emp-toggle--on {
+  background-color: #004e8d;
+}
+
+.emp-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.emp-toggle--on .emp-toggle-thumb {
+  transform: translateX(20px);
 }

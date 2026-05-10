@@ -61,7 +61,11 @@ const useInfiniteOrders = () => {
     [fetchOrders, hasMore, loading],
   );
 
-  return { orders, loading, lastElementRef, hasMore, error };
+  const prependOrder = useCallback((newOrder) => {
+    setOrders((prev) => [newOrder, ...prev]);
+  }, []);
+
+  return { orders, loading, lastElementRef, hasMore, error, prependOrder };
 };
 
 export default useInfiniteOrders;

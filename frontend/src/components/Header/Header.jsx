@@ -1,39 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import usePermission from '../../hooks/usePermissions';
 import './Header.css';
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { logout } = useAuth();
+  const [history, setHistory] = useState([]);
+  const { logout, user } = useAuth();
+  const hasPermission = usePermission();
+
+  const canSeeOrders = hasPermission('order', 1) || hasPermission('queues', 1);
+  const canSeeEmployees = hasPermission('role', 1);
+  const canSeeStorage = hasPermission('storage', 1);
+
+  useEffect(() => {
+    setHistory((prev) => {
+      const last = prev[prev.length - 1];
+      if (last === location.pathname) return prev;
+      return [...prev, location.pathname];
+    });
+  }, [location.pathname]);
+
+  const handleBack = () => {
+    setHistory((prev) => prev.slice(0, -1));
+    navigate(-1);
+  };
 
   const getPageTitle = () => {
     switch (location.pathname) {
       case '/orders':
         return 'Заказы';
-      case '/create-order':
-        return 'Создание заказа';
       case '/print-queue':
         return 'Печать очереди';
       case '/employees':
         return 'Сотрудники';
+      case '/materials':
+        return 'Склад';
       default:
         if (location.pathname.startsWith('/orders/')) return 'Детали заказа';
         return 'Страница';
     }
   };
 
-  const canGoBack = location.pathname !== '/';
-
-  const handleNavigateToOrders = () => {
-    navigate('/orders');
-    setMenuOpen(false);
-  };
-
-  const handleNavigateToEmployees = () => {
-    navigate('/employees');
+  const navTo = (path) => {
+    navigate(path);
     setMenuOpen(false);
   };
 
@@ -41,6 +54,8 @@ const Header = () => {
     setMenuOpen(false);
     logout();
   };
+
+  const showBackButton = history.length >= 2;
 
   return (
     <>
@@ -54,10 +69,10 @@ const Header = () => {
           <span></span>
         </div>
 
-        {canGoBack && (
+        {showBackButton && (
           <button
             className="header-back-btn"
-            onClick={() => navigate(-1)}
+            onClick={handleBack}
           >
             <svg
               width="24"
@@ -107,64 +122,103 @@ const Header = () => {
           </button>
         </div>
 
+        {user && (
+          <div className="sidebar-user">
+            <div className="sidebar-user-avatar">
+              {user.name?.[0]}
+              {user.lastname?.[0]}
+            </div>
+            <div className="sidebar-user-info">
+              <span className="sidebar-user-name">
+                {user.name} {user.lastname}
+              </span>
+              <span className="sidebar-user-login">{user.username}</span>
+            </div>
+          </div>
+        )}
+
         <div className="sidebar-divider" />
 
         <p className="sidebar-nav-label">Навигация</p>
         <nav className="sidebar-nav">
-          <button
-            className="sidebar-nav-item"
-            onClick={handleNavigateToOrders}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {canSeeOrders && (
+            <button
+              className="sidebar-nav-item"
+              onClick={() => navTo('/orders')}
             >
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line
-                x1="16"
-                y1="13"
-                x2="8"
-                y2="13"
-              />
-              <line
-                x1="16"
-                y1="17"
-                x2="8"
-                y2="17"
-              />
-            </svg>
-            Заказы
-          </button>
-        </nav>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line
+                  x1="16"
+                  y1="13"
+                  x2="8"
+                  y2="13"
+                />
+                <line
+                  x1="16"
+                  y1="17"
+                  x2="8"
+                  y2="17"
+                />
+              </svg>
+              Заказы
+            </button>
+          )}
 
-        <button
-          className="sidebar-nav-item"
-          onClick={handleNavigateToEmployees}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-            <circle
-              cx="9"
-              cy="7"
-              r="4"
-            />
-            <path d="M23 21v-2a4 4 0 00-3-3.87" />
-            <path d="M16 3.13a4 4 0 010 7.75" />
-          </svg>
-          Сотрудники
-        </button>
+          {canSeeStorage && (
+            <button
+              className="sidebar-nav-item"
+              onClick={() => navTo('/materials')}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              Склад
+            </button>
+          )}
+
+          {canSeeEmployees && (
+            <button
+              className="sidebar-nav-item"
+              onClick={() => navTo('/employees')}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                <circle
+                  cx="9"
+                  cy="7"
+                  r="4"
+                />
+                <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                <path d="M16 3.13a4 4 0 010 7.75" />
+              </svg>
+              Сотрудники
+            </button>
+          )}
+        </nav>
 
         <button
           className="sidebar-logout-btn"
