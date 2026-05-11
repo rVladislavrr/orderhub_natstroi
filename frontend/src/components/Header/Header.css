@@ -254,6 +254,21 @@
   text-overflow: ellipsis;
 }
 
+.sidebar-nav-item--active {
+  background-color: #004e8d;
+  border-color: #004e8d;
+  color: #f8fafc;
+}
+
+.sidebar-nav-item--active:hover {
+  background-color: #004176;
+  border-color: #004176;
+}
+
+.sidebar-nav-item--active svg {
+  opacity: 1;
+}
+
 @media screen and (max-width: 1366px) {
   .main-header {
     height: 76px;

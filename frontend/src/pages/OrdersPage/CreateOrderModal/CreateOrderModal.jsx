@@ -69,8 +69,12 @@ const CreateOrderModal = ({ onClose, onCreated }) => {
       onCreated(result);
     } catch (error) {
       const status = error?.response?.status;
-      if (status === 409) {
+      console.log(error.response.data.field);
+      console.log(error.response.data);
+      if (status === 409 && error.response.data.detail.field === 'num_orders') {
         toast.error('Заказ с таким номером уже существует');
+      } else if (status === 409 && error.response.data.detail.field === 'internal_num_orders') {
+        toast.error('Заказ с таким внутренним номером уже существует');
       } else {
         toast.error(error?.response?.data?.detail || 'Ошибка при создании заказа');
       }

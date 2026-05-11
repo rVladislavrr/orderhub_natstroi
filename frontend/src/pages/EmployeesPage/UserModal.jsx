@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { addUser, updateUser, updatePermissions } from '../../api/usersApi';
 import { toast } from 'react-toastify';
 
 const PERMISSIONS = [
   { key: 'storage', label: 'Склад' },
   { key: 'order', label: 'Заказы' },
-  { key: 'queues', label: 'Очереди' },
+  { key: 'queues', label: 'Очереди', levels: [0, 2] },
   { key: 'role', label: 'Роли' },
 ];
 
@@ -17,6 +17,9 @@ const LEVELS = [
 
 const UserModal = ({ onClose, onCreated, user = null }) => {
   const isEdit = Boolean(user);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [shake, setShake] = useState(null);
+  const tooltipTimeout = useRef(null);
 
   const [form, setForm] = useState({
     username: user?.username ?? '',
@@ -38,6 +41,31 @@ const UserModal = ({ onClose, onCreated, user = null }) => {
 
   const handleField = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
   const handleToggle = (key) => setForm((p) => ({ ...p, [key]: !p[key] }));
+
+  const handlePermission = (key, value) => {
+    setPermissions((p) => {
+      if (key === 'order' && value === 0 && p.queues === 2) {
+        setShake('queues');
+        setTimeout(() => setShake(null), 500);
+        return p;
+      }
+      const next = { ...p, [key]: value };
+      if (key === 'queues' && value === 2 && next.order === 0) {
+        next.order = 1;
+      }
+      return next;
+    });
+  };
+
+  const handlePasswordMouseEnter = () => {
+    if (!isEdit) return;
+    tooltipTimeout.current = setTimeout(() => setTooltipVisible(true), 300);
+  };
+
+  const handlePasswordMouseLeave = () => {
+    clearTimeout(tooltipTimeout.current);
+    setTooltipVisible(false);
+  };
 
   const handleSubmit = async () => {
     if (!form.username || !form.name || !form.lastname || (!isEdit && !form.password)) {
@@ -79,6 +107,18 @@ const UserModal = ({ onClose, onCreated, user = null }) => {
     }
   };
 
+  const fields = [
+    { name: 'name', label: 'Имя' },
+    { name: 'lastname', label: 'Фамилия' },
+    { name: 'username', label: 'Логин' },
+    {
+      name: 'password',
+      label: isEdit ? 'Новый пароль' : 'Пароль',
+      type: 'password',
+      placeholder: isEdit ? 'Новый пароль' : 'Пароль',
+    },
+  ];
+
   return (
     <div
       className="emp-modal-overlay"
@@ -111,31 +151,40 @@ const UserModal = ({ onClose, onCreated, user = null }) => {
 
         <div className="emp-modal-body">
           <div className="emp-form-grid">
-            {[
-              { name: 'name', label: 'Имя' },
-              { name: 'lastname', label: 'Фамилия' },
-              { name: 'username', label: 'Логин' },
-              {
-                name: 'password',
-                label: isEdit ? 'Новый пароль' : 'Пароль',
-                type: 'password',
-                placeholder: isEdit ? 'Оставьте пустым, чтобы не менять' : 'Пароль',
-              },
-            ].map(({ name, label, type = 'text', placeholder }) => (
+            {fields.map(({ name, label, type = 'text', placeholder }) => (
               <div
                 className="emp-form-field"
                 key={name}
               >
                 <label className="emp-form-label">{label}</label>
-                <input
-                  className="emp-form-input"
-                  type={type}
-                  name={name}
-                  value={form[name]}
-                  onChange={handleField}
-                  placeholder={placeholder ?? label}
-                  autoComplete="off"
-                />
+                {name === 'password' && isEdit ? (
+                  <div
+                    className="emp-password-wrap"
+                    onMouseEnter={handlePasswordMouseEnter}
+                    onMouseLeave={handlePasswordMouseLeave}
+                  >
+                    <input
+                      className="emp-form-input"
+                      type={type}
+                      name={name}
+                      value={form[name]}
+                      onChange={handleField}
+                      placeholder={placeholder}
+                      autoComplete="off"
+                    />
+                    {tooltipVisible && <div className="emp-tooltip">Оставьте пустым, чтобы не менять пароль</div>}
+                  </div>
+                ) : (
+                  <input
+                    className="emp-form-input"
+                    type={type}
+                    name={name}
+                    value={form[name]}
+                    onChange={handleField}
+                    placeholder={placeholder ?? label}
+                    autoComplete="off"
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -175,26 +224,30 @@ const UserModal = ({ onClose, onCreated, user = null }) => {
           <div className="emp-perms-section">
             <p className="emp-perms-title">Права доступа</p>
             <div className="emp-perms-table">
-              {PERMISSIONS.map(({ key, label }) => (
-                <div
-                  className="emp-perms-row"
-                  key={key}
-                >
-                  <span className="emp-perms-row-label">{label}</span>
-                  <div className="emp-perms-row-options">
-                    {LEVELS.map(({ value, label: lvlLabel }) => (
-                      <button
-                        key={value}
-                        type="button"
-                        className={`emp-perm-option emp-perm-option--${value} ${permissions[key] === value ? 'emp-perm-option--active' : ''}`}
-                        onClick={() => setPermissions((p) => ({ ...p, [key]: value }))}
-                      >
-                        {lvlLabel}
-                      </button>
-                    ))}
+              {PERMISSIONS.map((perm) => {
+                const availableLevels = perm.levels ? LEVELS.filter((l) => perm.levels.includes(l.value)) : LEVELS;
+
+                return (
+                  <div
+                    className="emp-perms-row"
+                    key={perm.key}
+                  >
+                    <span className="emp-perms-row-label">{perm.label}</span>
+                    <div className="emp-perms-row-options">
+                      {availableLevels.map(({ value, label: lvlLabel }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          className={`emp-perm-option emp-perm-option--${value} ${permissions[perm.key] === value ? 'emp-perm-option--active' : ''} ${shake === perm.key && value === 2 ? 'emp-perm-option--shake' : ''}`}
+                          onClick={() => handlePermission(perm.key, value)}
+                        >
+                          {lvlLabel}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

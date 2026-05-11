@@ -862,6 +862,7 @@
   left: 0;
   min-width: 100%;
   max-height: 240px;
+  overflow-x: hidden;
   overflow-y: auto;
   background-color: white;
   border: 1px solid #cbd5e1;

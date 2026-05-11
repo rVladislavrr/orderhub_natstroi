@@ -16,6 +16,13 @@ const Header = () => {
   const canSeeEmployees = hasPermission('role', 1);
   const canSeeStorage = hasPermission('storage', 1);
 
+  const isActive = (path) => {
+    if (path === '/orders') {
+      return location.pathname === '/orders' || location.pathname.startsWith('/orders/');
+    }
+    return location.pathname === path;
+  };
+
   useEffect(() => {
     setHistory((prev) => {
       const last = prev[prev.length - 1];
@@ -143,7 +150,7 @@ const Header = () => {
         <nav className="sidebar-nav">
           {canSeeOrders && (
             <button
-              className="sidebar-nav-item"
+              className={`sidebar-nav-item ${isActive('/orders') ? 'sidebar-nav-item--active' : ''}`}
               onClick={() => navTo('/orders')}
             >
               <svg
@@ -175,7 +182,7 @@ const Header = () => {
 
           {canSeeStorage && (
             <button
-              className="sidebar-nav-item"
+              className={`sidebar-nav-item ${isActive('/materials') ? 'sidebar-nav-item--active' : ''}`}
               onClick={() => navTo('/materials')}
             >
               <svg
@@ -195,7 +202,7 @@ const Header = () => {
 
           {canSeeEmployees && (
             <button
-              className="sidebar-nav-item"
+              className={`sidebar-nav-item ${isActive('/employees') ? 'sidebar-nav-item--active' : ''}`}
               onClick={() => navTo('/employees')}
             >
               <svg

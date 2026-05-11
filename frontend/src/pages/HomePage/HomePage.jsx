@@ -10,12 +10,16 @@ const HomePage = () => {
   const [showModal, setShowModal] = useState(false);
 
   if (!loading && user) {
-    return (
-      <Navigate
-        to={getRouteByPermissions(user.permissions)}
-        replace
-      />
-    );
+    const route = getRouteByPermissions(user.permissions);
+    // Если прав нет — остаёмся на главной, не создаём бесконечный редирект
+    if (route !== '/no-access') {
+      return (
+        <Navigate
+          to={route}
+          replace
+        />
+      );
+    }
   }
 
   return (
