@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getUsers, getUser } from '../../api/usersApi';
 import UserModal from './UserModal';
 import LoadingDots from '../../components/LoadingDots/LoadingDots';
+import EmptyState from '../../components/EmptyState/EmptyState';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import './EmployeesPage.css';
@@ -104,7 +105,11 @@ const EmployeesPage = () => {
         {loading ? (
           <LoadingDots inline />
         ) : users.length === 0 ? (
-          <div className="emp-empty">Сотрудники не найдены</div>
+          <EmptyState
+            type="employees"
+            title="Сотрудников пока нет"
+            subtitle="Нажмите «Добавить сотрудника», чтобы создать первого"
+          />
         ) : (
           <table className="emp-table">
             <thead>

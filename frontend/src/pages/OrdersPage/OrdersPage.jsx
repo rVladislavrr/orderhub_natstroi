@@ -2,6 +2,7 @@ import './OrdersPage.css';
 import useInfiniteOrders from '../../hooks/useInfiniteOrders';
 import LoadingDots from '../../components/LoadingDots/LoadingDots';
 import OrderCard from '../../components/OrderCard/OrderCard';
+import EmptyState from '../../components/EmptyState/EmptyState';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CreateOrderModal from './CreateOrderModal/CreateOrderModal';
@@ -42,7 +43,21 @@ const OrdersPage = () => {
           </div>
         )}
 
-        {!loading && error ? <p className="nan-orders">Что-то пошло не так O_o</p> : orders.length === 0 && !loading && !error ? <p className="nan-orders">Заказов пока нет</p> : null}
+        {!loading && error && (
+          <EmptyState
+            type="error"
+            title="Что-то пошло не так"
+            subtitle="Попробуйте обновить страницу"
+          />
+        )}
+
+        {!loading && !error && orders.length === 0 && (
+          <EmptyState
+            type="orders"
+            title="Заказов пока нет"
+            subtitle={canCreateOrder ? 'Нажмите «Добавить заказ», чтобы создать первый' : undefined}
+          />
+        )}
 
         {orders.map((order, index) => {
           const isLastElement = index === orders.length - 1;

@@ -5,13 +5,18 @@ import { loginRequest, logoutRequest } from '../api/authApi';
 
 const AuthContext = createContext(null);
 
+const hasAnyPermission = (permissions) => {
+  if (!permissions) return false;
+  return Object.values(permissions).some((v) => v >= 1);
+};
+
 const getRouteByPermissions = (permissions) => {
-  if (!permissions) return '/';
+  if (!permissions || !hasAnyPermission(permissions)) return '/no-access';
   if (permissions.order >= 1) return '/orders';
   if (permissions.queues >= 1) return '/orders';
   if (permissions.storage >= 1) return '/materials';
   if (permissions.role >= 1) return '/employees';
-  return '/';
+  return '/no-access';
 };
 
 export const AuthProvider = ({ children }) => {
@@ -61,7 +66,7 @@ export const AuthProvider = ({ children }) => {
     navigate(getRouteByPermissions(me.permissions));
   };
 
-  return <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, loading, login, logout, getRouteByPermissions }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

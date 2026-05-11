@@ -3,6 +3,7 @@ import { getMarkDetails } from '../../../api/ordersApi';
 import { getStatusColor } from '../../../utils/statusUtils';
 import { toast } from 'react-toastify';
 import LoadingDots from '../../../components/LoadingDots/LoadingDots';
+import EmptyState from '../../../components/EmptyState/EmptyState';
 
 const MarksList = ({ marks, selectedKmd, marksLoading, lastElementRef }) => {
   const [expandedMarkId, setExpandedMarkId] = useState([]);
@@ -19,7 +20,6 @@ const MarksList = ({ marks, selectedKmd, marksLoading, lastElementRef }) => {
 
       if (!markDetails[markId]) {
         setDetailsLoading((prev) => ({ ...prev, [markId]: true }));
-
         try {
           const details = await getMarkDetails(markId);
           setMarkDetails((prev) => ({ ...prev, [markId]: details }));
@@ -37,7 +37,13 @@ const MarksList = ({ marks, selectedKmd, marksLoading, lastElementRef }) => {
 
   return (
     <div className="marks-section">
-      {!marksLoading && marks.length === 0 && <p className="no-marks">Нет марок для этого КМД</p>}
+      {!marksLoading && marks.length === 0 && (
+        <EmptyState
+          type="marks"
+          title="Марки отсутствуют"
+          subtitle="Для данного КМД марки не найдены"
+        />
+      )}
 
       {marks.length > 0 && (
         <div className="marks-list">
@@ -58,12 +64,10 @@ const MarksList = ({ marks, selectedKmd, marksLoading, lastElementRef }) => {
                       <span></span>
                       <span>{mark.quantity} шт.</span>
                     </div>
-
                     <div className="mark-info-item">
                       <span>Вес:</span>
                       <span>{mark.weight} кг</span>
                     </div>
-
                     <div className="mark-info-item">
                       <span>Общий вес:</span>
                       <span>{(mark.quantity * mark.weight).toFixed(1)} кг</span>

@@ -10,18 +10,31 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import EmployeesPage from './pages/EmployeesPage/EmployeesPage';
 import MaterialsPage from './pages/MaterialsPage/MaterialPage';
+import NoAccessPage from './pages/NoAccessPage/NoAccessPage';
+import NotFoundPage from './pages/NotFoundPage/NotFoundPage';
+import ScrollToTop from './components/ScrollToTop/ScrollToTop';
+
+const HEADERLESS = ['/', '/no-access', '/404'];
 
 function App() {
   const location = useLocation();
-  const isHomePage = location.pathname === '/';
+  const hideHeader = HEADERLESS.includes(location.pathname);
 
   return (
     <AuthProvider>
-      {!isHomePage && <Header />}
+      {!hideHeader && <Header />}
       <Routes>
         <Route
           path="/"
           element={<HomePage />}
+        />
+        <Route
+          path="/no-access"
+          element={<NoAccessPage />}
+        />
+        <Route
+          path="/404"
+          element={<NotFoundPage />}
         />
 
         <Route
@@ -50,7 +63,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/print-queue"
           element={
@@ -59,7 +71,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/materials"
           element={
@@ -68,7 +79,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/employees"
           element={
@@ -82,12 +92,15 @@ function App() {
           path="*"
           element={
             <Navigate
-              to="/"
+              to="/404"
               replace
             />
           }
         />
       </Routes>
+
+      <ScrollToTop />
+
       <ToastContainer
         position="bottom-right"
         autoClose={4000}

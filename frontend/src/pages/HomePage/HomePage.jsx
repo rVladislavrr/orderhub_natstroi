@@ -5,17 +5,8 @@ import logo from './logo.svg';
 import './HomePage.css';
 import LoginModal from './LoginModal/LoginModal';
 
-const getRouteByPermissions = (permissions) => {
-  if (!permissions) return '/';
-  if (permissions.order >= 1) return '/orders';
-  if (permissions.queues >= 1) return '/orders';
-  if (permissions.storage >= 1) return '/materials';
-  if (permissions.role >= 1) return '/employees';
-  return '/';
-};
-
 const HomePage = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, getRouteByPermissions } = useAuth();
   const [showModal, setShowModal] = useState(false);
 
   if (!loading && user) {
