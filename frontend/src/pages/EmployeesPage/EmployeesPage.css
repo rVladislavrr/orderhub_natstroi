@@ -13,9 +13,17 @@
   justify-content: space-between;
   margin-bottom: 28px;
   min-height: 52px;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .emp-top-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.emp-top-actions {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -49,6 +57,7 @@
   transition: all 0.2s;
   font-family: inherit;
   border: none;
+  white-space: nowrap;
 }
 
 .emp-btn--primary {
@@ -113,11 +122,20 @@
   white-space: nowrap;
 }
 
+.emp-table th:last-child {
+  text-align: center;
+  width: 100px;
+}
+
 .emp-table td {
   padding: 16px 20px;
   border-bottom: 1px solid #e2e8f0;
   color: #334155;
   vertical-align: middle;
+}
+
+.emp-table td:last-child {
+  text-align: center;
 }
 
 .emp-table tbody tr:last-child td {
@@ -194,6 +212,54 @@
   text-align: center;
 }
 
+.emp-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.emp-stats-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.emp-stats-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #004e8d;
+  color: #004e8d;
+}
+
+.emp-edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.emp-edit-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #004e8d;
+  color: #004e8d;
+}
+
+/* Модальные окна */
 .emp-modal-overlay {
   position: fixed;
   inset: 0;
@@ -275,6 +341,16 @@
   gap: 20px;
 }
 
+.emp-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+}
+
+/* Форма */
 .emp-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -401,35 +477,7 @@
   animation: empShake 0.5s ease;
 }
 
-.emp-modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 16px 24px;
-  border-top: 1px solid #e2e8f0;
-  background-color: #f8fafc;
-}
-
-.emp-edit-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  background-color: transparent;
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.emp-edit-btn:hover {
-  background-color: #f1f5f9;
-  border-color: #004e8d;
-  color: #004e8d;
-}
-
+/* Тогглы */
 .emp-toggles-section {
   display: flex;
   flex-direction: column;
@@ -494,6 +542,7 @@
   transform: translateX(20px);
 }
 
+/* Тултип для пароля */
 .emp-password-wrap {
   position: relative;
   display: block;
@@ -536,5 +585,33 @@
   to {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .emp-top-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .emp-top-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .emp-top-actions .emp-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .emp-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .emp-table th,
+  .emp-table td {
+    padding: 12px;
+    font-size: 13px;
   }
 }

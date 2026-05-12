@@ -13,6 +13,7 @@ import MaterialsPage from './pages/MaterialsPage/MaterialPage';
 import NoAccessPage from './pages/NoAccessPage/NoAccessPage';
 import NotFoundPage from './pages/NotFoundPage/NotFoundPage';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
+import WorkJournalPage from './pages/WorkJournalPage/WorkJournalPage';
 
 const HEADERLESS = ['/', '/no-access', '/404'];
 
@@ -84,6 +85,14 @@ function App() {
           element={
             <ProtectedRoute allowedPermissions={[{ key: 'role', level: 1 }]}>
               <EmployeesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/work-journal"
+          element={
+            <ProtectedRoute allowedPermissions={[{ key: 'role', level: 1 }]}>
+              <WorkJournalPage />
             </ProtectedRoute>
           }
         />

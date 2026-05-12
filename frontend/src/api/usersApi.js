@@ -26,3 +26,8 @@ export const getUser = async (userId) => {
   const response = await api.get(`/users/${userId}`);
   return response.data;
 };
+
+export const getUserStats = async (userUuid) => {
+  const response = await api.get(`/users/${userUuid}/stats`);
+  return response.data;
+};

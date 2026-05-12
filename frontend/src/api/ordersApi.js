@@ -177,3 +177,8 @@ export const getMarksFilters = async (kmdUuid, column) => {
     throw error;
   }
 };
+
+export const deleteOrderFile = async (fileId) => {
+  const response = await api.delete(`/orders/files/${fileId}`);
+  return response.data;
+};

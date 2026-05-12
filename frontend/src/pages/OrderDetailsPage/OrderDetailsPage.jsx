@@ -79,6 +79,13 @@ const OrderDetailsPage = () => {
     });
   };
 
+  const handleFileDeleted = (updatedFiles) => {
+    setOrder((prevOrder) => ({
+      ...prevOrder,
+      files: updatedFiles,
+    }));
+  };
+
   if (loading) return <LoadingDots />;
   if (!order) return <div>Заказ не найден</div>;
 
@@ -100,6 +107,7 @@ const OrderDetailsPage = () => {
           orderUuid={location.state?.uuid}
           files={order.files}
           onFileUploaded={handleFileUploaded}
+          onFileDeleted={handleFileDeleted}
         />
       )}
 

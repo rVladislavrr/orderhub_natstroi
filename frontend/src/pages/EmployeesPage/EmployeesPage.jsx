@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getUsers, getUser } from '../../api/usersApi';
 import UserModal from './UserModal';
+import UserStatsModal from './UserStatsModal/UserStatsModal';
 import LoadingDots from '../../components/LoadingDots/LoadingDots';
 import EmptyState from '../../components/EmptyState/EmptyState';
 import { useAuth } from '../../context/AuthContext';
@@ -17,6 +19,7 @@ const formatDate = (iso) => {
 };
 
 const EmployeesPage = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [page, setPage] = useState(1);
@@ -24,6 +27,7 @@ const EmployeesPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [editLoading, setEditLoading] = useState(null);
+  const [statsUser, setStatsUser] = useState(null);
   const { user: currentUser } = useAuth();
 
   const fetchUsers = useCallback(async (p = 1) => {
@@ -70,35 +74,57 @@ const EmployeesPage = () => {
           <h1 className="emp-heading">Сотрудники</h1>
           {pagination && <span className="emp-total-badge">{pagination.total_items}</span>}
         </div>
-        <button
-          className="emp-btn emp-btn--primary"
-          onClick={() => setShowModal(true)}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        <div className="emp-top-actions">
+          <button
+            className="emp-btn emp-btn--ghost"
+            onClick={() => navigate('/work-journal')}
           >
-            <line
-              x1="12"
-              y1="5"
-              x2="12"
-              y2="19"
-            />
-            <line
-              x1="5"
-              y1="12"
-              x2="19"
-              y2="12"
-            />
-          </svg>
-          Добавить сотрудника
-        </button>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 20V10" />
+              <path d="M12 20V4" />
+              <path d="M6 20v-6" />
+            </svg>
+            Журнал работ
+          </button>
+          <button
+            className="emp-btn emp-btn--primary"
+            onClick={() => setShowModal(true)}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line
+                x1="12"
+                y1="5"
+                x2="12"
+                y2="19"
+              />
+              <line
+                x1="5"
+                y1="12"
+                x2="19"
+                y2="12"
+              />
+            </svg>
+            Добавить сотрудника
+          </button>
+        </div>
       </div>
 
       <div className="emp-table-wrapper">
@@ -133,48 +159,70 @@ const EmployeesPage = () => {
                     </td>
                     <td>{formatDate(u.create_at)}</td>
                     <td>
-                      {!isSelf && (
+                      <div className="emp-actions">
                         <button
-                          className="emp-edit-btn"
-                          onClick={() => handleEdit(u)}
-                          disabled={editLoading === u.uuid}
-                          title="Редактировать"
+                          className="emp-stats-btn"
+                          onClick={() => setStatsUser(u)}
+                          title="Статистика"
                         >
-                          {editLoading === u.uuid ? (
-                            <svg
-                              width="15"
-                              height="15"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              style={{ opacity: 0.4 }}
-                            >
-                              <circle
-                                cx="12"
-                                cy="12"
-                                r="10"
-                              />
-                            </svg>
-                          ) : (
-                            <svg
-                              width="15"
-                              height="15"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                            </svg>
-                          )}
+                          <svg
+                            width="15"
+                            height="15"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M18 20V10" />
+                            <path d="M12 20V4" />
+                            <path d="M6 20v-6" />
+                          </svg>
                         </button>
-                      )}
+                        {!isSelf && (
+                          <button
+                            className="emp-edit-btn"
+                            onClick={() => handleEdit(u)}
+                            disabled={editLoading === u.uuid}
+                            title="Редактировать"
+                          >
+                            {editLoading === u.uuid ? (
+                              <svg
+                                width="15"
+                                height="15"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                style={{ opacity: 0.4 }}
+                              >
+                                <circle
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                />
+                              </svg>
+                            ) : (
+                              <svg
+                                width="15"
+                                height="15"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              </svg>
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -211,6 +259,14 @@ const EmployeesPage = () => {
           onClose={handleCloseModal}
           onCreated={handleCreated}
           user={editUser}
+        />
+      )}
+
+      {statsUser && (
+        <UserStatsModal
+          isOpen={!!statsUser}
+          onClose={() => setStatsUser(null)}
+          user={statsUser}
         />
       )}
     </div>
