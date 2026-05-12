@@ -1,0 +1,500 @@
+.materials-page {
+  max-width: 1240px;
+  width: 100%;
+  margin: 18px auto;
+  padding: 0 24px 80px;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+.mat-header {
+  margin-bottom: 24px;
+}
+
+.mat-title {
+  font-size: clamp(22px, 2.5vw, 34px);
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: #1e293b;
+}
+
+.mat-subtitle {
+  font-size: 15px;
+  color: #64748b;
+  margin: 0;
+}
+
+.mat-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.mat-mode-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.mat-tab {
+  padding: 9px 18px;
+  border-radius: 7px;
+  border: 2px solid #004e8d;
+  background: white;
+  color: #004e8d;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mat-tab:hover {
+  background: #e8f0f9;
+}
+
+.mat-tab--active {
+  background: #004e8d;
+  color: white;
+}
+
+.mat-tab--active:hover {
+  background: #003d6b;
+}
+
+/* ── Дропдаун выбора заказа ── */
+
+.mat-order-dropdown {
+  position: relative;
+  min-width: 320px;
+  max-width: 480px;
+  flex: 1;
+}
+
+.mat-order-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 14px;
+  border: 1.5px solid #004e8d;
+  border-radius: 8px;
+  background: white;
+  font-family: inherit;
+  font-size: 14px;
+  color: #004e8d;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+  user-select: none;
+}
+
+.mat-order-toggle:hover {
+  background: #e8f0f9;
+}
+
+.mat-order-toggle--selected {
+  color: #1e293b;
+  border-color: #cbd5e1;
+}
+
+.mat-order-toggle--selected:hover {
+  border-color: #004e8d;
+  background: #f8fafc;
+}
+
+.mat-order-toggle-text {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mat-order-arrow {
+  flex-shrink: 0;
+  color: #94a3b8;
+  transition: transform 0.2s;
+}
+
+.mat-order-arrow--open {
+  transform: rotate(180deg);
+}
+
+.mat-order-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  overflow: hidden;
+}
+
+/* Загрузочная полоска — аналог loading-overlay из MultiSelect */
+.mat-order-loading-bar {
+  height: 2px;
+  background: linear-gradient(90deg, #004e8d, #60a5fa);
+  transform-origin: left;
+  animation: mat-loading-bar 0.8s ease-in-out infinite;
+  border-radius: 2px;
+}
+
+@keyframes mat-loading-bar {
+  0% {
+    transform: scaleX(0);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(0);
+    opacity: 0.7;
+  }
+}
+
+.mat-order-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
+}
+
+.mat-order-search-icon {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.mat-order-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: inherit;
+  font-size: 13px;
+  color: #1e293b;
+  width: 100%;
+}
+
+.mat-order-search-input::placeholder {
+  color: #b0bac4;
+}
+
+.mat-order-list {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.mat-order-option {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.13s;
+  border-bottom: 0.5px solid #f1f5f9;
+  user-select: none;
+}
+
+.mat-order-option:last-child {
+  border-bottom: none;
+}
+
+.mat-order-option:hover {
+  background: #f8fafc;
+}
+
+.mat-order-option--active {
+  background: #eef5fc;
+}
+
+.mat-order-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mat-order-name {
+  font-size: 13px;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mat-order-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--status-color) 12%, transparent);
+  color: var(--status-color);
+}
+
+.mat-order-status-badge::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--status-color);
+  flex-shrink: 0;
+}
+
+.mat-order-empty {
+  padding: 20px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+/* ── Мета-информация ── */
+
+.mat-order-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.mat-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.mat-meta-label {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.mat-meta-value {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.mat-meta-total {
+  color: #004e8d;
+  font-size: 16px;
+}
+
+.mat-meta-sep {
+  width: 1px;
+  height: 18px;
+  background: #e2e8f0;
+}
+
+.mat-meta-right {
+  margin-left: auto;
+}
+
+/* ── Ошибка ── */
+
+.mat-error {
+  padding: 14px 18px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #dc2626;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+/* ── Пустое состояние ── */
+
+.mat-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: #94a3b8;
+  font-size: 16px;
+  background: #f8fafc;
+  border: 1px dashed #e2e8f0;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+/* ── Таблица ── */
+
+.mat-table-wrapper {
+  overflow-x: auto;
+  overflow-y: visible;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  margin-bottom: 0;
+}
+
+.mat-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.mat-th-sticky,
+.mat-td-sticky {
+  position: sticky;
+  background: inherit;
+  z-index: 2;
+}
+
+.mat-th-profile,
+.mat-td-profile {
+  left: 0;
+  min-width: 160px;
+  max-width: 200px;
+  text-align: left;
+}
+
+.mat-th-grade,
+.mat-td-grade {
+  left: 160px;
+  min-width: 110px;
+  text-align: left;
+  border-right: 2px solid #e2e8f0;
+}
+
+.mat-table thead tr {
+  background: #f1f5f9;
+}
+
+.mat-th {
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 11px 10px;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.mat-th-sticky {
+  z-index: 4;
+}
+
+.mat-th-total {
+  border-left: 2px solid #cbd5e1;
+  color: #004e8d;
+}
+
+.mat-row {
+  background: white;
+  transition: background 0.15s;
+}
+
+.mat-row:hover {
+  background: #f8fafc;
+}
+
+.mat-row:hover .mat-td-sticky {
+  background: #f8fafc;
+}
+
+.mat-td {
+  padding: 10px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.mat-td-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: #1e293b;
+}
+
+.mat-td-grand {
+  border-left: 2px solid #cbd5e1;
+  font-weight: 600;
+  color: #004e8d;
+}
+
+.mat-zero {
+  color: #cbd5e1;
+}
+
+.mat-grade-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #e8f0f9;
+  color: #004e8d;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mat-foot-row {
+  background: #f1f5f9;
+  border-top: 2px solid #cbd5e1;
+}
+
+.mat-foot-label {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 13px;
+  padding: 11px 10px;
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: #f1f5f9;
+  z-index: 2;
+  border-right: 2px solid #e2e8f0;
+}
+
+.mat-foot-num {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 13px;
+}
+
+/* ── Инфинит-скролл ── */
+
+.mat-bottom-sentinel {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.mat-load-hint {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.mat-pagination-info {
+  text-align: center;
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 8px;
+  margin-bottom: 24px;
+}

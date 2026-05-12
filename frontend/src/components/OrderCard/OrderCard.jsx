@@ -1,10 +1,10 @@
 import { getStatusColor } from '../../utils/statusUtils';
 import './OrderCard.css';
 
-const OrderCard = ({ order, isLastElement, lastElementRef, onClick }) => {
+const OrderCard = ({ order, isLastElement, lastElementRef, onClick, isNew }) => {
   return (
     <div
-      className="order-card"
+      className={`order-card${isNew ? ' order-card--new' : ''}`}
       ref={isLastElement ? lastElementRef : null}
       onClick={onClick}
     >

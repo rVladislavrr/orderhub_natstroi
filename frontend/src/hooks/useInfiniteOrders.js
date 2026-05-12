@@ -19,7 +19,12 @@ const useInfiniteOrders = () => {
 
     try {
       const data = await getOrders(page, 5);
-      setOrders((prev) => [...prev, ...data.orders]);
+
+      setOrders((prev) => {
+        const newOrders = data.orders.filter((newOrder) => !prev.some((existingOrder) => existingOrder.uuid === newOrder.uuid));
+        return [...prev, ...newOrders];
+      });
+
       setHasMore(data.pagination.has_more);
       setPage((prev) => prev + 1);
     } catch {
@@ -61,7 +66,27 @@ const useInfiniteOrders = () => {
     [fetchOrders, hasMore, loading],
   );
 
-  return { orders, loading, lastElementRef, hasMore, error };
+  const prependOrder = useCallback((newOrder) => {
+    setOrders((prev) => {
+      const exists = prev.some((order) => order.uuid === newOrder.uuid);
+
+      if (exists) {
+        const filteredOrders = prev.filter((order) => order.uuid !== newOrder.uuid);
+        return [newOrder, ...filteredOrders];
+      }
+
+      return [newOrder, ...prev];
+    });
+  }, []);
+
+  return {
+    orders,
+    loading,
+    lastElementRef,
+    hasMore,
+    error,
+    prependOrder,
+  };
 };
 
 export default useInfiniteOrders;

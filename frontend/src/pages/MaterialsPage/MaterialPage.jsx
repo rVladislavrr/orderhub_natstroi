@@ -1,0 +1,445 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import LoadingDots from '../../components/LoadingDots/LoadingDots';
+import { getActiveMaterials, getMaterialsByOrder } from '../../api/materialsApi';
+import { getOrders } from '../../api/ordersApi';
+import { getStatusColor } from '../../utils/statusUtils';
+import './MaterialPage.css';
+
+const PAGE_LIMIT = 100;
+
+export default function MaterialsPage() {
+  const [mode, setMode] = useState('active');
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orderDropdownOpen, setOrderDropdownOpen] = useState(false);
+  const [orderSearch, setOrderSearch] = useState('');
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersHasLoaded, setOrdersHasLoaded] = useState(false);
+
+  const [activeData, setActiveData] = useState(null);
+  const [activeRows, setActiveRows] = useState([]);
+  const [activePage, setActivePage] = useState(1);
+  const [activeHasMore, setActiveHasMore] = useState(false);
+  const [activeLoading, setActiveLoading] = useState(false);
+  const [activeLoadingMore, setActiveLoadingMore] = useState(false);
+  const [activeError, setActiveError] = useState(null);
+
+  const [orderData, setOrderData] = useState(null);
+  const [orderRows, setOrderRows] = useState([]);
+  const [orderPage, setOrderPage] = useState(1);
+  const [orderHasMore, setOrderHasMore] = useState(false);
+  const [orderLoading, setOrderLoading] = useState(false);
+  const [orderLoadingMore, setOrderLoadingMore] = useState(false);
+  const [orderError, setOrderError] = useState(null);
+
+  const bottomRef = useRef(null);
+  const observerRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  const modeRef = useRef(mode);
+  const selectedOrderRef = useRef(selectedOrder);
+
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
+
+  useEffect(() => {
+    selectedOrderRef.current = selectedOrder;
+  }, [selectedOrder]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOrderDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const fetchOrders = useCallback(async () => {
+    setOrdersLoading(true);
+    try {
+      const data = await getOrders(1, 100);
+      setOrders(data.orders ?? data.rows ?? []);
+    } catch (e) {
+      console.error('Ошибка загрузки заказов', e);
+    } finally {
+      setOrdersLoading(false);
+      setOrdersHasLoaded(true);
+    }
+  }, []);
+
+  const fetchActive = useCallback(async (page = 1, append = false) => {
+    if (page === 1) setActiveLoading(true);
+    else setActiveLoadingMore(true);
+    setActiveError(null);
+    try {
+      const data = await getActiveMaterials(page, PAGE_LIMIT);
+      setActiveData(data);
+      setActiveRows((prev) => (append ? [...prev, ...data.rows] : data.rows));
+      setActivePage(page);
+      setActiveHasMore(data.pagination?.has_more ?? false);
+    } catch (e) {
+      setActiveError(e.message);
+    } finally {
+      setActiveLoading(false);
+      setActiveLoadingMore(false);
+    }
+  }, []);
+
+  const fetchOrder = useCallback(async (uuid, page = 1, append = false) => {
+    if (!uuid) return;
+    if (page === 1) setOrderLoading(true);
+    else setOrderLoadingMore(true);
+    setOrderError(null);
+    try {
+      const data = await getMaterialsByOrder(uuid, page, PAGE_LIMIT);
+      setOrderData(data);
+      setOrderRows((prev) => (append ? [...prev, ...data.rows] : data.rows));
+      setOrderPage(page);
+      setOrderHasMore(data.pagination?.has_more ?? false);
+    } catch (e) {
+      setOrderError(e.message);
+    } finally {
+      setOrderLoading(false);
+      setOrderLoadingMore(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (mode === 'active') {
+      fetchActive(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
+  useEffect(() => {
+    if (orderDropdownOpen && !ordersHasLoaded) {
+      fetchOrders();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderDropdownOpen]);
+
+  useEffect(() => {
+    if (selectedOrder) {
+      setOrderRows([]);
+      setOrderData(null);
+      setOrderPage(1);
+      fetchOrder(selectedOrder.uuid, 1, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedOrder]);
+
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    const isActive = mode === 'active';
+    const hasMore = isActive ? activeHasMore : orderHasMore;
+    const loadingMore = isActive ? activeLoadingMore : orderLoadingMore;
+
+    if (!hasMore || loadingMore) return;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          const currentMode = modeRef.current;
+          const currentOrder = selectedOrderRef.current;
+
+          if (currentMode === 'active') {
+            fetchActive(activePage + 1, true);
+          } else if (currentOrder?.uuid) {
+            fetchOrder(currentOrder.uuid, orderPage + 1, true);
+          }
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    if (bottomRef.current) {
+      observerRef.current.observe(bottomRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, activeHasMore, activeLoadingMore, activePage, orderHasMore, orderLoadingMore, orderPage, selectedOrder]);
+
+  const handleModeSwitch = (m) => {
+    setMode(m);
+    if (m === 'active' && !activeData) fetchActive(1);
+  };
+
+  const handleToggleDropdown = () => {
+    setOrderDropdownOpen((v) => !v);
+  };
+
+  const handleSelectOrder = (order) => {
+    setSelectedOrder(order);
+    setOrderDropdownOpen(false);
+    setOrderSearch('');
+  };
+
+  const filteredOrders = orders.filter((o) => {
+    const q = orderSearch.toLowerCase();
+    return String(o.internal_num_orders ?? '').includes(q) || (o.name ?? '').toLowerCase().includes(q);
+  });
+
+  const activeColumns = activeData?.columns ?? [];
+  const orderColumns = orderData?.columns ?? [];
+  const currentColumns = mode === 'active' ? activeColumns : orderColumns;
+  const currentRows = mode === 'active' ? activeRows : orderRows;
+  const currentData = mode === 'active' ? activeData : orderData;
+  const currentLoading = mode === 'active' ? activeLoading : orderLoading;
+  const currentLoadingMore = mode === 'active' ? activeLoadingMore : orderLoadingMore;
+  const currentError = mode === 'active' ? activeError : orderError;
+  const currentHasMore = mode === 'active' ? activeHasMore : orderHasMore;
+
+  const formatNum = (n) => (n == null ? '—' : n === 0 ? <span className="mat-zero">—</span> : n.toLocaleString('ru-RU'));
+
+  return (
+    <div className="materials-page">
+      <div className="mat-header">
+        <h1 className="mat-title">Склад материалов</h1>
+        <p className="mat-subtitle">Профили и сталь по заказам</p>
+      </div>
+
+      <div className="mat-controls">
+        <div className="mat-mode-tabs">
+          <button
+            className={`mat-tab ${mode === 'active' ? 'mat-tab--active' : ''}`}
+            onClick={() => handleModeSwitch('active')}
+          >
+            Все активные заказы
+          </button>
+          <button
+            className={`mat-tab ${mode === 'order' ? 'mat-tab--active' : ''}`}
+            onClick={() => handleModeSwitch('order')}
+          >
+            По заказу
+          </button>
+        </div>
+
+        {mode === 'order' && (
+          <div
+            className="mat-order-dropdown"
+            ref={dropdownRef}
+          >
+            <button
+              className={`mat-order-toggle ${selectedOrder ? 'mat-order-toggle--selected' : ''}`}
+              onClick={handleToggleDropdown}
+            >
+              <span className="mat-order-toggle-text">{selectedOrder ? `№${selectedOrder.internal_num_orders} — ${selectedOrder.name}` : 'Выберите заказ...'}</span>
+              <svg
+                className={`mat-order-arrow ${orderDropdownOpen ? 'mat-order-arrow--open' : ''}`}
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path
+                  d="M6 9l6 6 6-6"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+
+            {orderDropdownOpen && (
+              <div className="mat-order-menu">
+                {ordersLoading && <div className="mat-order-loading-bar" />}
+
+                <div className="mat-order-search-wrap">
+                  <svg
+                    className="mat-order-search-icon"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <circle
+                      cx="11"
+                      cy="11"
+                      r="8"
+                      strokeWidth="2"
+                    />
+                    <path
+                      d="M21 21l-4.35-4.35"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <input
+                    className="mat-order-search-input"
+                    type="text"
+                    placeholder="Поиск по номеру или названию..."
+                    value={orderSearch}
+                    onChange={(e) => setOrderSearch(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+
+                <div className="mat-order-list">
+                  {!ordersHasLoaded && <div className="mat-order-empty">Загрузка заказов...</div>}
+                  {ordersHasLoaded && filteredOrders.length === 0 && <div className="mat-order-empty">Заказы не найдены</div>}
+                  {ordersHasLoaded &&
+                    filteredOrders.map((order) => (
+                      <div
+                        key={order.uuid}
+                        className={`mat-order-option ${selectedOrder?.uuid === order.uuid ? 'mat-order-option--active' : ''}`}
+                        style={{ '--status-color': getStatusColor(order.status) }}
+                        onClick={() => handleSelectOrder(order)}
+                      >
+                        <span className="mat-order-num">№{order.internal_num_orders}</span>
+                        <span className="mat-order-name">{order.name}</span>
+                        {order.status && <span className="mat-order-status-badge">{order.status}</span>}
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {mode === 'order' && orderData && (
+        <div className="mat-order-meta">
+          {orderData.order && (
+            <>
+              <span className="mat-meta-item">
+                <span className="mat-meta-label">Заказ:</span>
+                <span className="mat-meta-value">№{orderData.order.internal_num_orders}</span>
+              </span>
+              <span className="mat-meta-sep" />
+              <span className="mat-meta-item">
+                <span className="mat-meta-label">Название:</span>
+                <span className="mat-meta-value">{orderData.order.name}</span>
+              </span>
+              <span className="mat-meta-sep" />
+              <span className="mat-meta-item">
+                <span className="mat-meta-label">Статус:</span>
+                <span className="mat-meta-value">{orderData.order.status}</span>
+              </span>
+            </>
+          )}
+          <span className="mat-meta-item mat-meta-right">
+            <span className="mat-meta-label">Итого:</span>
+            <span className="mat-meta-value mat-meta-total">{currentData?.grand_total?.toLocaleString('ru-RU')} кг</span>
+          </span>
+        </div>
+      )}
+
+      {mode === 'active' && activeData && (
+        <div className="mat-order-meta">
+          <span className="mat-meta-item">
+            <span className="mat-meta-label">Активных заказов:</span>
+            <span className="mat-meta-value">{activeData.orders_count}</span>
+          </span>
+          <span className="mat-meta-item mat-meta-right">
+            <span className="mat-meta-label">Итого:</span>
+            <span className="mat-meta-value mat-meta-total">{currentData?.grand_total?.toLocaleString('ru-RU')} кг</span>
+          </span>
+        </div>
+      )}
+
+      {currentError && (
+        <div className="mat-error">
+          <span>Нет КМД для этого заказа</span>
+        </div>
+      )}
+
+      {currentLoading && <LoadingDots />}
+
+      {!currentLoading && currentRows.length > 0 && (
+        <div className="mat-table-wrapper">
+          <table className="mat-table">
+            <thead>
+              <tr>
+                <th className="mat-th mat-th-sticky mat-th-profile">Профиль</th>
+                <th className="mat-th mat-th-sticky mat-th-grade">Марка стали</th>
+                {currentColumns.map((col) => (
+                  <th
+                    key={col}
+                    className="mat-th mat-th-col"
+                  >
+                    {col}
+                  </th>
+                ))}
+                <th className="mat-th mat-th-total">Итого</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentRows.map((row, i) => (
+                <tr
+                  key={`${row.profile}-${row.steel_grade}-${i}`}
+                  className="mat-row"
+                >
+                  <td className="mat-td mat-td-sticky mat-td-profile">{row.profile}</td>
+                  <td className="mat-td mat-td-sticky mat-td-grade">
+                    <span className="mat-grade-badge">{row.steel_grade}</span>
+                  </td>
+                  {currentColumns.map((col) => (
+                    <td
+                      key={col}
+                      className="mat-td mat-td-num"
+                    >
+                      {formatNum(row.totals?.[col])}
+                    </td>
+                  ))}
+                  <td className="mat-td mat-td-num mat-td-grand">{row.grand_total?.toLocaleString('ru-RU')}</td>
+                </tr>
+              ))}
+            </tbody>
+            {currentData?.column_totals && (
+              <tfoot>
+                <tr className="mat-foot-row">
+                  <td
+                    className="mat-td mat-td-sticky mat-foot-label"
+                    colSpan={2}
+                  >
+                    Итого
+                  </td>
+                  {currentColumns.map((col) => (
+                    <td
+                      key={col}
+                      className="mat-td mat-td-num mat-foot-num"
+                    >
+                      {currentData.column_totals[col]?.toLocaleString('ru-RU') ?? '—'}
+                    </td>
+                  ))}
+                  <td className="mat-td mat-td-num mat-foot-num mat-td-grand">{currentData.grand_total?.toLocaleString('ru-RU')}</td>
+                </tr>
+              </tfoot>
+            )}
+          </table>
+        </div>
+      )}
+
+      {!currentLoading && !currentError && currentRows.length === 0 && mode === 'order' && selectedOrder && <div className="mat-empty">Нет данных по этому заказу</div>}
+      {!currentLoading && !currentError && currentRows.length === 0 && mode === 'order' && !selectedOrder && <div className="mat-empty">Выберите заказ для просмотра материалов</div>}
+
+      <div
+        ref={bottomRef}
+        className="mat-bottom-sentinel"
+      >
+        {currentLoadingMore && <LoadingDots />}
+        {!currentLoadingMore && currentHasMore && <div className="mat-load-hint">Загружаем ещё...</div>}
+      </div>
+
+      {/* на будущее
+       {currentData?.pagination && (
+        <div className="mat-pagination-info">
+          Показано {currentRows.length} из {currentData.pagination.total_items} строк
+        </div>
+      )} */}
+    </div>
+  );
+}

@@ -1,17 +1,30 @@
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import logo from './logo.svg';
 import './HomePage.css';
+import LoginModal from './LoginModal/LoginModal';
 
 const HomePage = () => {
-  const navigate = useNavigate();
-  const handleClick = () => {
-    navigate('/orders');
-  };
+  const { user, loading, getRouteByPermissions } = useAuth();
+  const [showModal, setShowModal] = useState(false);
+
+  if (!loading && user) {
+    const route = getRouteByPermissions(user.permissions);
+    // Если прав нет — остаёмся на главной, не создаём бесконечный редирект
+    if (route !== '/no-access') {
+      return (
+        <Navigate
+          to={route}
+          replace
+        />
+      );
+    }
+  }
 
   return (
     <div className="home-page-container">
       <div className="overlay"></div>
-
       <div className="content">
         <div className="logo-section">
           <img
@@ -24,11 +37,13 @@ const HomePage = () => {
         </div>
         <button
           className="btn"
-          onClick={handleClick}
+          onClick={() => setShowModal(true)}
         >
           В рабочее пространство
         </button>
       </div>
+
+      {showModal && <LoginModal onClose={() => setShowModal(false)} />}
     </div>
   );
 };

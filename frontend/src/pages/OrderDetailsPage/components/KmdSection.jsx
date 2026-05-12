@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import LoadingDots from '../../../components/LoadingDots/LoadingDots';
 import MarksList from './MarksList';
 import SortControls from './SortControls';
 import { getMarksFilters } from '../../../api/ordersApi';
@@ -149,7 +148,6 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
         </div>
       )}
 
-      {marksLoading && <LoadingDots />}
       <MarksList
         marks={marks}
         selectedKmd={selectedKmd}

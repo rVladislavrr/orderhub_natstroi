@@ -9,7 +9,7 @@
 .orders-container {
   max-width: 1240px;
   width: 100%;
-  padding: 0 24px;
+  padding: 24px 24px 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;

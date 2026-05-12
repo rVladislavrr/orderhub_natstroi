@@ -6,6 +6,14 @@
   width: 100%;
 }
 
+.loading-dots-wrapper--inline {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 0;
+  width: 100%;
+}
+
 .loading-dots {
   display: flex;
   gap: 8px;
