@@ -16,7 +16,8 @@ log = logging.getLogger('Марк роутер')
 
 
 @router.get(
-    '/{marks_id}/details'
+    '/{marks_id}/details',
+summary='Получение всех деталей в марке'
 )
 async def get_marks(
         request: Request,

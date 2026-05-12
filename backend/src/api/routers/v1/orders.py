@@ -11,9 +11,12 @@ from src.db.base import DataBaseError, ErrorInDataBase
 from src.db.connection import get_async_session
 from src.db.fileManager import filesManager
 from src.db.ordersManager import ordersManager
+from src.models import Files, Users
+from src.models.files import FileStatus
 from src.service.s3Manager import s3_client
 from src.shemas import orders, pagination
 from src.shemas.files import FileCreate, FileRead
+from src.shemas.orders import OrdersUpdate
 from src.utils.check_excel import ExcelValidator
 from src.utils.hash import calculate_file_hash
 from workers.tasks.read_excel import read_tech_file
@@ -28,6 +31,7 @@ router = APIRouter(
 @router.post(
     "",
     status_code=status.HTTP_201_CREATED,
+summary='Создание заказа'
 )
 async def create_orders(
         data_orders: orders.OrdersCreate,
@@ -55,6 +59,7 @@ async def create_orders(
 @router.get(
     '',
     status_code=status.HTTP_200_OK,
+summary='Получение всех заказов'
 )
 async def get_orders(request: Request,
                      limit: int = Query(5, gt=0),
@@ -99,9 +104,11 @@ async def get_orders(request: Request,
     return res
 
 
+
 @router.get(
     '/{order_id}',
     status_code=status.HTTP_200_OK,
+summary='Получение конкретного заказа'
 )
 async def get_order(
         request: Request,
@@ -146,7 +153,8 @@ def get_file_api(file: UploadFile = File(...)) -> UploadFile:
     return file
 
 
-@router.post("/{order_id}/upload")
+@router.post("/{order_id}/upload",
+             summary='Подгрузка файла к заказу')
 async def upload_file(request: Request,
                       order_id: UUID4,
                       background_tasks: BackgroundTasks,
@@ -219,3 +227,56 @@ async def upload_file(request: Request,
     log.info(f'{request_id}| Фоновая задача на загрузку в S3')
     await read_tech_file.kiq(fileORM.uuid, request_id)
     return fileORM
+
+
+@router.delete("/files/{file_id}", summary='Удаление ошибочного файла')
+async def delete_file(request: Request,
+                      file_id: UUID4,
+                      background_tasks: BackgroundTasks,
+                      session: AsyncSession = Depends(get_async_session),
+                      ):
+    request_id = request.state.request_id
+
+    file_orm = await session.get(Files, file_id)
+
+    if file_orm:
+        if file_orm.status == FileStatus.ERROR:
+            try:
+                await session.delete(file_orm)
+
+                background_tasks.add_task(
+                    s3_client.delete_file,
+                    obj_name=str(file_id),
+                    bucket_name=settings.S3_BUCKET_NAME,
+                    request_id=request_id
+                )
+                await session.commit()
+            except:
+                await session.rollback()
+                log.error(f'{request_id} Ошибка', exc_info=True)
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='File not error')
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Not found file')
+
+    return
+
+@router.put('/{order_id}', summary='Изменение заказа')
+async def update_order(request: Request,
+                       order_id: UUID4,
+                       order_data: OrdersUpdate,
+                       session: AsyncSession = Depends(get_async_session)):
+    request_id = request.state.request_id
+    log.info(f'{request_id} | Обновление параметров заказа {order_id}')
+    user = await ordersManager.update_orders(order_id, order_data, session, request_id)
+    log.info(f'{request_id} | Успешное обновление параметров параметров заказа {order_id}')
+    return user
+
+
+
+
+
+
+
+

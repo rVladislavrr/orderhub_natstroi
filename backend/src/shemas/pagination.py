@@ -2,11 +2,14 @@ from src.shemas import orders
 from pydantic import BaseModel
 
 from src.shemas.details import RelMarkaBase
-from src.shemas.marks import MarksDetailsRead, MarksRead
+from src.shemas.marks import MarksRead
+from src.shemas.users import UsersReadPag, Workers
+
 
 class Filters(BaseModel):
     name: str | None = None
     count: int
+
 
 class PaginationInfo(BaseModel):
     page: int
@@ -32,3 +35,13 @@ class PaginatedResponseMarks(BaseModel):
 class PaginatedResponseDetails(BaseModel):
     details: list[RelMarkaBase]
     pagination: PaginationInfo
+
+
+class PaginatedResponseUsersRead(BaseModel):
+    users: list[UsersReadPag]
+    pagination: PaginationInfo
+
+class PaginatedResponseWorkers(BaseModel):
+    workers: list[Workers]
+    pagination: PaginationInfo
+

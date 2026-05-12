@@ -9,8 +9,8 @@ from sqlalchemy.dialects.postgresql import ENUM as sqlEnum
 class DetailsStatus(str, Enum):
     NEW = "Новый"
     IN_PROGRESS = "В работе"
-    COMPLETED = "Завершён"
-    CANCELLED = "Удалён"
+    COMPLETED = "Завершен"
+    CANCELLED = "Удален"
 
 
 class RelMarkaDel(Base):

@@ -10,6 +10,7 @@ from src.admin import register_admin_views
 from src.broker import broker
 from src.config import settings
 from src.db.connection import async_session_maker, get_async_session
+from src.db.usersManager import usersManager
 from src.graphql.schema import schema
 from src.logger import setup_logging
 from src.middlewares.authMiddleware import AuthMiddleware
@@ -34,7 +35,7 @@ async def lifespan(app: FastAPI):
         region_name=settings.S3_REGION,
     )
     register_admin_views(admin)
-
+    await usersManager.create_admin()
     yield
     await broker.shutdown()
     await redis_client.close()
@@ -46,7 +47,7 @@ app = FastAPI(
 app.include_router(v1.router)
 
 app.add_middleware(ErrorMiddleware)
-# app.add_middleware(AuthMiddleware)
+app.add_middleware(AuthMiddleware)
 app.add_middleware(LoggingMiddleware)
 
 
@@ -64,7 +65,6 @@ async def get_graphql_context(db=Depends(get_async_session)):
 # Подключаем GraphQL роутер
 graphql_app = GraphQLRouter(
     schema,
-
     context_getter=get_graphql_context,
 )
 
@@ -75,5 +75,5 @@ if __name__ == "__main__":
     uvicorn.run(
         app,
         host="0.0.0.0",
-        port=8001,
+        port=8000,
     )

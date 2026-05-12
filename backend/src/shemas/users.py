@@ -3,8 +3,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Dict, Any
 from uuid import UUID
-from pydantic import BaseModel, UUID4, Field, field_validator, model_validator, computed_field
-
+from pydantic import BaseModel, UUID4, Field, field_validator, model_validator
 
 class UserAuth(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
@@ -15,19 +14,20 @@ class UsersBase(BaseModel):
     name: str = Field(..., min_length=3, max_length=250)
     lastname: str = Field(..., min_length=3, max_length=250)
     is_login: bool = False
+    is_active: bool = True
 
 
 class UsersRequest(UsersBase, UserAuth):
+    pass
+
+class UsersUpdate(UsersRequest):
+    password: str | None = Field(None, min_length=6, max_length=50)
     pass
 
 
 class UsersCreate(UsersBase):
     username: str = Field(..., min_length=3, max_length=50)
     hash_password: str | None = Field(..., max_length=256)
-
-
-class UsersUpdate(UsersBase):
-    pass
 
 
 class LevelEnum(int, Enum):
@@ -39,7 +39,7 @@ class LevelEnum(int, Enum):
 class CategoryEnum(str, Enum):
     STORAGE = "storage"
     ORDER = "order"
-    PRODUCT = "product"
+    QUEUES = "queues"
     ROLE = "role"
 
 
@@ -149,13 +149,13 @@ class PermissionConverterMixin(BaseModel):
 
         return data
 
-
-class UsersRead(UsersBase, PermissionConverterMixin):
+class UsersReadPag(UsersBase):
     uuid: UUID4
-    is_active: bool
     create_at: datetime
-    update_at: datetime
-    delete_at: datetime | None = None
+
+
+class UsersRead(UsersReadPag, PermissionConverterMixin):
+    username: str = Field(..., min_length=3, max_length=50)
     permissions: Permission = Field(default_factory=lambda: Permission(permissions="0000"))
 
 
@@ -182,7 +182,10 @@ class UserTokenCreate(BaseModel):
             return str(v)
         return v
 
-
+class Workers(BaseModel):
+    name: str = Field(..., min_length=3, max_length=250)
+    lastname: str = Field(..., min_length=3, max_length=250)
+    uuid: UUID4
 
 if __name__ == "__main__":
     user_data = {

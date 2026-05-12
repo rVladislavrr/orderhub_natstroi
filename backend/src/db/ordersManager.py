@@ -1,14 +1,17 @@
 import logging
 
+from fastapi import HTTPException, status
 from sqlalchemy import select, func
-from sqlalchemy.exc import OperationalError, InterfaceError, SQLAlchemyError
+from sqlalchemy.exc import OperationalError, InterfaceError, SQLAlchemyError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload, contains_eager
+from sqlalchemy.orm import selectinload
+from datetime import datetime
+
 from src.db.base import BaseManager, ErrorInDataBase, DataBaseError
 from src.db.connection import async_session_maker
-from src.models import Orders, Marks, KMD
-from src.shemas.marks import MarksRead, MarksDetailsRead
+from src.models import Orders
 from src.shemas.orders import OrdersCreate, OrdersRead, OrdersUpdate, OrdersReadFile, OrdersReadFileMarks
+from src.utils.unique_f import extract_conflict_field
 
 log = logging.getLogger('Ордер менеджер')
 
@@ -164,6 +167,42 @@ class OrdersManager(BaseManager[OrdersCreate, OrdersRead, OrdersUpdate, Orders])
             return OrdersReadFile.model_validate(entity, from_attributes=True)
         else:
             return None
+
+    async def update_orders(self, order_od,
+                            order_data: OrdersUpdate,
+                            session: AsyncSession,
+                            request_id: str | None = None):
+        try:
+            order = await session.get(Orders, order_od)
+            if not order:
+                log.debug(f'{request_id} | Заказ  не получен')
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+            log.info(f'{request_id} | Заказ получен')
+
+            for key, value in order_data.model_dump(exclude_unset=True).items():
+                setattr(order, key, value)
+
+            order.update_at = datetime.now()
+            await session.commit()
+            await session.refresh(order)
+            log.info(f'{request_id} | Заказ обновлён')
+            return OrdersRead.model_validate(order, from_attributes=True)
+
+        except HTTPException:
+            raise
+
+        except IntegrityError as e:
+            conflict_field = extract_conflict_field(e)
+            log.debug(
+                f"{request_id} | Объект {self.model.__name__} не обновлен тк поле попадает в unique",
+            )
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                detail={'msg': 'Already exist', 'field': conflict_field})
+
+        except Exception as e:
+            log.error('Ошибка при обновлении пользователя', exc_info=e)
+            raise
 
 
 ordersManager = OrdersManager()

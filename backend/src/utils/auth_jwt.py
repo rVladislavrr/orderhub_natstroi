@@ -123,14 +123,13 @@ async def get_payload_access(credentials: HTTPAuthorizationCredentials = Depends
 
 
 async def get_payload_refresh(request: Request) -> (str, str):
-    request_id = request.state.request_id
     token = request.cookies.get(settings.auth_jwt.key_cookie)
 
     if token is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={"msg": f"Not found refresh token"})
 
     payload = decode_jwt_token(token, REFRESH_TOKEN_TYPE)
-    return payload, request_id
+    return payload
 
 
 async def get_active_payload(userInf=Depends(get_payload_access)) -> UserInfo:

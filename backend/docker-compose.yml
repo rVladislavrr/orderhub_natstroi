@@ -1,8 +1,8 @@
 services:
   redis:
     image: redis:7.2-alpine
-    container_name: redis_bkp
-    hostname: redis_bkp
+    container_name: redis
+    hostname: redis
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     ports:
@@ -31,8 +31,8 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: postgres_bkp
-    hostname: postgres_bkp
+    container_name: postgres_bkp_local
+    hostname: postgres_bkp_local
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER}

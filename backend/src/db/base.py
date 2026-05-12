@@ -9,6 +9,8 @@ from src.models import Base
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import OperationalError, InterfaceError, SQLAlchemyError, IntegrityError
 
+from src.utils.unique_f import extract_conflict_field
+
 TCreate = TypeVar("TCreate", bound=BaseModel)
 TRead = TypeVar("TRead", bound=BaseModel)
 TUpdate = TypeVar("TUpdate", bound=BaseModel)
@@ -16,14 +18,18 @@ TModel = TypeVar("TModel", bound=Base)
 
 database_logger = logging.getLogger("DatabaseLogger")
 
+
 class DataBaseError(Exception):
     pass
+
 
 class ErrorInDataBase(Exception):
     pass
 
-class BaseManager(Generic[TCreate, TRead, TUpdate, TModel]):
 
+
+
+class BaseManager(Generic[TCreate, TRead, TUpdate, TModel]):
     create_schema: type[TCreate]
     read_schema: type[TRead]
     update_schema: type[TUpdate]
@@ -36,7 +42,7 @@ class BaseManager(Generic[TCreate, TRead, TUpdate, TModel]):
         await session.flush()
         await session.refresh(instance)
         database_logger.debug(
-            f"Successfully created {self.model.__name__}: {instance}"
+            f"Successfully created {self.model.__name__}"
         )
         return instance
 
@@ -49,6 +55,7 @@ class BaseManager(Generic[TCreate, TRead, TUpdate, TModel]):
             if session is None:
                 async with async_session_maker() as session:
                     entity = await self.__create_entity(data, session)
+                    await session.commit()
 
             else:
                 entity = await self.__create_entity(data, session)
@@ -62,11 +69,12 @@ class BaseManager(Generic[TCreate, TRead, TUpdate, TModel]):
             )
             raise DataBaseError(e)
 
-        except IntegrityError:
+        except IntegrityError as e:
+            conflict_field = _extract_conflict_field(e)
             database_logger.debug(
                 f"{request_id} | Объект{self.model.__name__} не создан тк поле попадает в unique",
             )
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Already exist')
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={'msg': 'Already exist', 'field': conflict_field})
 
         except SQLAlchemyError as e:
             database_logger.error(
@@ -128,4 +136,3 @@ class BaseManager(Generic[TCreate, TRead, TUpdate, TModel]):
     @property
     def __name__(self):
         return self.__class__.__name__
-

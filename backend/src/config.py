@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     REDIS_DB_CACHE: int = 1
     REDIS_EXP: int = 5
 
+    ADMIN_USERNAME: str
+    ADMIN_PASSWORD: str
+
     LOG_LEVEL: str = 'DEBUG'
 
     auth_jwt: AuthJWT = AuthJWT()
