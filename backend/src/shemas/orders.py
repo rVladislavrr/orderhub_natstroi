@@ -45,4 +45,6 @@ class OrdersReadFileMarks(OrdersReadFile):
     total_marks_count: float
     total_marks_count_uq: float
     total_marks_weight: float
+    total_shipped_count: float
+    total_shipped_weight: float
     list_kmd: list[KMDOrders]

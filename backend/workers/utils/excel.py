@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from src.config import settings
 from src.db.base import ErrorInDataBase
-from src.models import Files, Orders, RelMarkaDel, Details, Marks, KMD
+from src.models import Files, Orders, RelMarkaDel, Details, Marks, KMD, MarkShipment
 from src.models.files import FileStatus
 from src.service.s3Manager import s3_client
 
@@ -364,3 +364,100 @@ async def update_kmd(list_kmd, session, request_id):
     await session.commit()
     log.info(f'{request_id}| Обновлено {updated_count} записей')
     return
+
+
+async def _calc_shipped_for_kmds(kmd_uuids: list, session) -> dict:
+    query = (
+        select(
+            Marks.kmd_uuid,
+            func.coalesce(func.sum(MarkShipment.quantity), 0).label('shipped_count'),
+            func.coalesce(
+                func.sum(MarkShipment.quantity * Marks.weight), 0
+            ).label('shipped_weight'),
+        )
+        .join(MarkShipment, MarkShipment.mark_id == Marks.id)
+        .where(Marks.kmd_uuid.in_(kmd_uuids))
+        .group_by(Marks.kmd_uuid)
+    )
+    results = (await session.execute(query)).all()
+
+    # kmd_uuid → {shipped_count, shipped_weight}
+    return {
+        str(r.kmd_uuid): {
+            'shipped_marks_count': int(r.shipped_count),
+            'shipped_marks_weight': round(float(r.shipped_weight), 2),
+        }
+        for r in results
+    }
+
+
+async def _calc_shipped_for_kmds(kmd_uuids: list, session) -> dict:
+    """
+    Считает отгруженные агрегаты для списка KMD одним запросом.
+
+    SELECT
+        marks.kmd_uuid,
+        SUM(ms.quantity)                     AS shipped_count,
+        SUM(ms.quantity * marks.weight)      AS shipped_weight
+    FROM mark_shipment ms
+    JOIN marks ON marks.id = ms.mark_id
+    WHERE marks.kmd_uuid IN (...)
+    GROUP BY marks.kmd_uuid
+    """
+    query = (
+        select(
+            Marks.kmd_uuid,
+            func.coalesce(func.sum(MarkShipment.quantity), 0).label('shipped_count'),
+            func.coalesce(
+                func.sum(MarkShipment.quantity * Marks.weight), 0
+            ).label('shipped_weight'),
+        )
+        .join(MarkShipment, MarkShipment.mark_id == Marks.id)
+        .where(Marks.kmd_uuid.in_(kmd_uuids))
+        .group_by(Marks.kmd_uuid)
+    )
+    results = (await session.execute(query)).all()
+
+    # kmd_uuid → {shipped_count, shipped_weight}
+    return {
+        str(r.kmd_uuid): {
+            'shipped_marks_count': int(r.shipped_count),
+            'shipped_marks_weight': round(float(r.shipped_weight), 2),
+        }
+        for r in results
+    }
+
+
+async def update_kmd_shipped(kmd_uuids: list, session, request_id: str) -> None:
+    """
+    Обновляет shipped_marks_count и shipped_marks_weight для переданных KMD.
+    Вызывается внутри фоновой задачи или напрямую если нужна синхронность.
+    """
+    if not kmd_uuids:
+        return
+
+    aggregates = await _calc_shipped_for_kmds(kmd_uuids, session)
+    log.info(f'{request_id}| Подсчитаны отгрузки для {len(aggregates)} КМД')
+
+    updated = 0
+    for kmd_uuid_str, values in aggregates.items():
+        await session.execute(
+            update(KMD)
+            .where(KMD.uuid == kmd_uuid_str)
+            .values(**values)
+        )
+        updated += 1
+
+    # Если у каких-то KMD из списка ещё нет ни одной отгрузки —
+    # они не попадут в aggregates, сбрасываем их в 0 явно
+    kmd_uuids_str = {str(u) for u in kmd_uuids}
+    no_shipments = kmd_uuids_str - set(aggregates.keys())
+    for kmd_uuid_str in no_shipments:
+        await session.execute(
+            update(KMD)
+            .where(KMD.uuid == kmd_uuid_str)
+            .values(shipped_marks_count=0, shipped_marks_weight=0)
+        )
+
+    await session.commit()
+    log.info(f'{request_id}| Обновлено отгрузок: {updated} КМД')

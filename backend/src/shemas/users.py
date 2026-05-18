@@ -22,7 +22,7 @@ class UsersRequest(UsersBase, UserAuth):
 
 class UsersUpdate(UsersRequest):
     password: str | None = Field(None, min_length=6, max_length=50)
-    pass
+
 
 
 class UsersCreate(UsersBase):
