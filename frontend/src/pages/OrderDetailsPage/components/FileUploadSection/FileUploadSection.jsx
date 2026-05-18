@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { uploadOrderFile, deleteOrderFile } from '../../../api/ordersApi';
+import { uploadOrderFile, deleteOrderFile } from '../../../../api/ordersApi';
 import { toast } from 'react-toastify';
-import ConfirmDeleteModal from './ConfirmDeleteModal';
+
+import './FileUploadSection.css';
+import ConfirmDeleteModal from '../ConfirmDeleteModal/ConfirmDeleteModal';
 
 const FILE_STATUSES = {
   'Только добавлен': 'status-new',

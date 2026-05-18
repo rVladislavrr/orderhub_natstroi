@@ -182,3 +182,23 @@ export const deleteOrderFile = async (fileId) => {
   const response = await api.delete(`/orders/files/${fileId}`);
   return response.data;
 };
+
+export const getKmdInfo = async (kmdUuid) => {
+  try {
+    const response = await api.get(`/kmd/${kmdUuid}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Ошибка при получении информации о КМД ${kmdUuid}:`, error);
+    throw error;
+  }
+};
+
+export const assembleMark = async (markId, data) => {
+  const response = await api.post(`/marks/${markId}/assemble`, data);
+  return response.data;
+};
+
+export const shipMark = async (markId, data) => {
+  const response = await api.post(`/marks/${markId}/ship`, data);
+  return response.data;
+};

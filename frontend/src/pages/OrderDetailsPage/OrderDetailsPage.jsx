@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import './OrderDetailsPage.css';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getOrderInfo } from '../../api/ordersApi';
+
 import LoadingDots from '../../components/LoadingDots/LoadingDots';
-import OrderHeader from './components/OrderHeader';
-import FileUploadSection from './components/FileUploadSection';
-import KmdSection from './components/KmdSection';
+
+import KmdSection from './components/KmdSection/KmdSection';
 import useInfiniteMarks from '../../hooks/useInfiniteMarks';
 import usePermission from '../../hooks/usePermissions';
+import OrderHeader from './components/OrderHeader/OrderHeader';
+import FileUploadSection from './components/FileUploadSection/FileUploadSection';
+import { getOrderInfo } from '../../api/ordersApi'
 
 const OrderDetailsPage = () => {
   const navigate = useNavigate();

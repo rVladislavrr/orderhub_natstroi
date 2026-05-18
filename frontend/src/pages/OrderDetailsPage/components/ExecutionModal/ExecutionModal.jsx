@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getWorkers } from '../../../api/workApi';
+import { getWorkers } from '../../../../api/workApi';
+import './ExecutionModal.css';
 
 const ExecutionModal = ({ isOpen, onClose, detail, markInfo, onSubmit }) => {
   const [workers, setWorkers] = useState([]);
