@@ -175,14 +175,12 @@ export default function MaterialsPage() {
     setOrderSearch('');
   };
 
-  // Функция для принудительного обновления активных заказов
   const refreshActive = () => {
     setActiveRows([]);
     setActivePage(1);
     fetchActive(1, false);
   };
 
-  // Функция для принудительного обновления заказа
   const refreshOrder = () => {
     if (selectedOrder) {
       setOrderRows([]);
@@ -210,7 +208,6 @@ export default function MaterialsPage() {
 
   const isTableMode = mode === 'active' || mode === 'order';
 
-  // ──── Кнопка обновления (переиспользуемая) ────
   const RefreshButton = ({ onClick }) => (
     <button
       className="mat-refresh-btn"
@@ -235,7 +232,6 @@ export default function MaterialsPage() {
     </button>
   );
 
-  // ──── Дропдаун выбора заказа ────
   const OrderDropdown = (
     <div
       className="mat-order-dropdown mat-order-dropdown--inline"

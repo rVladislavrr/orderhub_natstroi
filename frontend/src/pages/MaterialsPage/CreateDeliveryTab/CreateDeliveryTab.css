@@ -513,3 +513,9 @@
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+.cd-add-item-footer {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-start;
+}

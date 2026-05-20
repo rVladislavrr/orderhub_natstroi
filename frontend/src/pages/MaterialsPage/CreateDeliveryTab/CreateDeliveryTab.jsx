@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { createTruck, checkMetal, getProfileTypes, getProfileSizes, getProfileSteels } from '../../../api/deliveryApi';
-import AutocompleteInput from '../AutoCompleteInput/AutoCompleteInput'
+import AutocompleteInput from '../AutoCompleteInput/AutoCompleteInput';
 import './CreateDeliveryTab.css';
 import { toast } from 'react-toastify';
 
@@ -24,7 +24,6 @@ const defaultForm = () => ({
   note: '',
 });
 
-// Убираем runtime-поля перед сохранением
 const serializeItems = (items) => items.map(({ checkData, checkLoading, checkError, ...rest }) => rest);
 
 const loadDraft = () => {
@@ -49,7 +48,6 @@ const clearDraft = () => {
   } catch {}
 };
 
-// Восстанавливаем runtime-поля после загрузки из localStorage
 const restoreItems = (items) =>
   items.map((it) => ({
     ...emptyItem(),
@@ -64,7 +62,6 @@ export default function CreateDeliveryTab({ onCreated }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
-  // Сохраняем в localStorage при каждом изменении form или items
   useEffect(() => {
     saveDraft(form, items);
   }, [form, items]);
@@ -76,7 +73,6 @@ export default function CreateDeliveryTab({ onCreated }) {
 
   const updateItem = (id, patch) => setItems((p) => p.map((it) => (it.id === id ? { ...it, ...patch } : it)));
 
-  // При смене типа — сбрасываем размер, марку, результаты check
   const handleTypeChange = (id, v) =>
     updateItem(id, {
       profile_type: v,
@@ -87,7 +83,6 @@ export default function CreateDeliveryTab({ onCreated }) {
       allocations: {},
     });
 
-  // При смене размера — сбрасываем марку и результаты check
   const handleSizeChange = (id, v) =>
     updateItem(id, {
       profile_size: v,
@@ -97,7 +92,6 @@ export default function CreateDeliveryTab({ onCreated }) {
       allocations: {},
     });
 
-  // При смене марки — сбрасываем результаты check
   const handleSteelChange = (id, v) =>
     updateItem(id, {
       steel_grade: v,
@@ -206,37 +200,7 @@ export default function CreateDeliveryTab({ onCreated }) {
       </section>
 
       <section className="cd-section">
-        <div className="cd-section-head">
-          <h2 className="cd-section-title">Позиции</h2>
-          <button
-            className="cd-add-item-btn"
-            onClick={addItem}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            >
-              <line
-                x1="12"
-                y1="5"
-                x2="12"
-                y2="19"
-              />
-              <line
-                x1="5"
-                y1="12"
-                x2="19"
-                y2="12"
-              />
-            </svg>
-            Добавить позицию
-          </button>
-        </div>
+        <h2 className="cd-section-title">Позиции</h2>
 
         <div className="cd-items-list">
           {items.map((item, idx) => (
@@ -255,6 +219,38 @@ export default function CreateDeliveryTab({ onCreated }) {
               onAllocWeightChange={(kmd_uuid, val) => setAllocWeight(item.id, kmd_uuid, val)}
             />
           ))}
+
+          {/* Кнопка теперь здесь — после всех позиций */}
+          <div className="cd-add-item-footer">
+            <button
+              className="cd-add-item-btn"
+              onClick={addItem}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              >
+                <line
+                  x1="12"
+                  y1="5"
+                  x2="12"
+                  y2="19"
+                />
+                <line
+                  x1="5"
+                  y1="12"
+                  x2="19"
+                  y2="12"
+                />
+              </svg>
+              Добавить позицию
+            </button>
+          </div>
         </div>
       </section>
 
@@ -437,7 +433,28 @@ function ItemCard({ item, idx, onTypeChange, onSizeChange, onSteelChange, onWeig
                           max={maxPossible}
                           placeholder="0"
                           value={inputVal}
-                          onChange={(e) => onAllocWeightChange(o.kmd_uuid, e.target.value)}
+                          onChange={(e) => {
+                            let val = e.target.value;
+                            // Пустое значение
+                            if (val === '') {
+                              onAllocWeightChange(o.kmd_uuid, '');
+                              return;
+                            }
+                            // Преобразуем в число
+                            let num = parseFloat(val);
+                            // Если не число или отрицательное - игнорируем
+                            if (isNaN(num) || num < 0) {
+                              return;
+                            }
+                            // Передаём значение
+                            onAllocWeightChange(o.kmd_uuid, String(num));
+                          }}
+                          onKeyDown={(e) => {
+                            // Блокируем клавишу минус и букву e (экспоненциальная запись)
+                            if (e.key === '-' || e.key === 'Minus' || e.key === 'e' || e.key === 'E') {
+                              e.preventDefault();
+                            }
+                          }}
                         />
                         {inputVal && parseFloat(inputVal) > 0 && (
                           <button

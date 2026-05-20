@@ -11,7 +11,7 @@ import ExecutionModal from '../ExecutionModal/ExecutionModal';
 import AssembleModal from '../AssembleModal';
 import ShipModal from '../ShipModal';
 
-const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElementRef }) => {
+const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElementRef, canChanges }) => {
   const [expandedMarkId, setExpandedMarkId] = useState([]);
   const [markDetails, setMarkDetails] = useState({});
   const [detailsLoading, setDetailsLoading] = useState({});
@@ -267,22 +267,24 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
                             </strong>
                           </span>
                         </div>
-                        <div className="mark-action-buttons">
-                          <button
-                            className="execution-button"
-                            onClick={(e) => handleRowClick(e, () => setAssembleModal({ isOpen: true, mark }))}
-                            disabled={mark.assembled_quantity >= mark.quantity}
-                          >
-                            Выполнить
-                          </button>
-                          <button
-                            className="ship-button"
-                            onClick={(e) => handleRowClick(e, () => setShipModal({ isOpen: true, mark }))}
-                            disabled={mark.shipped_quantity >= mark.quantity}
-                          >
-                            Отгрузить
-                          </button>
-                        </div>
+                        {canChanges && (
+                          <div className="mark-action-buttons">
+                            <button
+                              className="execution-button"
+                              onClick={(e) => handleRowClick(e, () => setAssembleModal({ isOpen: true, mark }))}
+                              disabled={mark.assembled_quantity >= mark.quantity}
+                            >
+                              Выполнить
+                            </button>
+                            <button
+                              className="ship-button"
+                              onClick={(e) => handleRowClick(e, () => setShipModal({ isOpen: true, mark }))}
+                              disabled={mark.shipped_quantity >= mark.quantity}
+                            >
+                              Отгрузить
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       {detailsLoading[mark.id] ? (
@@ -303,7 +305,7 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
                                 <th>Остаток</th>
                                 <th>Статус</th>
                                 <th>Операция</th>
-                                <th>Выполнение</th>
+                                {canChanges && <th>Выполнение</th>}
                               </tr>
                             </thead>
                             <tbody>
@@ -329,15 +331,17 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
                                     </span>
                                   </td>
                                   <td>{detail.detail?.operation || '-'}</td>
-                                  <td>
-                                    <button
-                                      className="execution-button"
-                                      onClick={(e) => handleRowClick(e, () => handleOpenExecution(detail, mark))}
-                                      disabled={detail.remaining_quantity === 0}
-                                    >
-                                      Выполнить
-                                    </button>
-                                  </td>
+                                  {canChanges && (
+                                    <td>
+                                      <button
+                                        className="execution-button"
+                                        onClick={(e) => handleRowClick(e, () => handleOpenExecution(detail, mark))}
+                                        disabled={detail.remaining_quantity === 0}
+                                      >
+                                        Выполнить
+                                      </button>
+                                    </td>
+                                  )}
                                 </tr>
                               ))}
                             </tbody>

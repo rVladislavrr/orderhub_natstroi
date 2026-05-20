@@ -9,13 +9,13 @@ export default function StockTab() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [checkPanel, setCheckPanel] = useState(null); // { rowKey, data } | null
+  const [checkPanel, setCheckPanel] = useState(null);
   const [checkLoading, setCheckLoading] = useState(false);
 
-  const [allocating, setAllocating] = useState({}); // { [kmd_uuid]: boolean }
-  const [allocateInputs, setAllocateInputs] = useState({}); // { [kmd_uuid]: string }
-  const [allocateSuccess, setAllocateSuccess] = useState({}); // { [kmd_uuid]: boolean }
-  const [allocateError, setAllocateError] = useState({}); // { [kmd_uuid]: string }
+  const [allocating, setAllocating] = useState({});
+  const [allocateInputs, setAllocateInputs] = useState({});
+  const [allocateSuccess, setAllocateSuccess] = useState({});
+  const [allocateError, setAllocateError] = useState({});
 
   const fetchStock = useCallback(async () => {
     setLoading(true);

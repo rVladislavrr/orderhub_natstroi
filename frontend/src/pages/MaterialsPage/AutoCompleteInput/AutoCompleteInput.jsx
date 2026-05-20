@@ -10,9 +10,13 @@ export default function AutocompleteInput({ value, onChange, fetchOptions, place
 
   const containerRef = useRef(null);
   const debounceRef = useRef(null);
-  const selectedRef = useRef(false); // флаг: значение выбрано из списка
+  const selectedRef = useRef(false);
 
-  // Синхронизация при внешнем сбросе value
+  const capitalizeFirst = (str) => {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
   useEffect(() => {
     setInputVal(value ?? '');
     if (!value) {
@@ -21,12 +25,10 @@ export default function AutocompleteInput({ value, onChange, fetchOptions, place
     }
   }, [value]);
 
-  // Клик вне — закрыть
   useEffect(() => {
     const handler = (e) => {
       if (!containerRef.current?.contains(e.target)) {
         setOpen(false);
-        // если пользователь напечатал что-то, но не выбрал — откатить к текущему value
         if (!selectedRef.current) setInputVal(value ?? '');
       }
     };
@@ -56,10 +58,17 @@ export default function AutocompleteInput({ value, onChange, fetchOptions, place
   );
 
   const handleChange = (e) => {
-    const v = e.target.value;
+    let v = e.target.value;
+
+    if (v.length === 1) {
+      v = v.toUpperCase();
+    } else if (v.length > 1 && v.charAt(0) !== v.charAt(0).toUpperCase()) {
+      v = capitalizeFirst(v);
+    }
+
     selectedRef.current = false;
     setInputVal(v);
-    onChange(''); // сбрасываем «выбранное» значение при ручном вводе
+    onChange(v);
     search(v);
   };
 
@@ -70,8 +79,9 @@ export default function AutocompleteInput({ value, onChange, fetchOptions, place
 
   const handleSelect = (opt) => {
     selectedRef.current = true;
-    setInputVal(opt);
-    onChange(opt);
+    const capitalizedOpt = capitalizeFirst(opt);
+    setInputVal(capitalizedOpt);
+    onChange(capitalizedOpt);
     setOpen(false);
     setOptions([]);
   };

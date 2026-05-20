@@ -7,8 +7,8 @@ export default function TrucksTab({ refreshKey }) {
   const [trucks, setTrucks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expanded, setExpanded] = useState(null); // truck_id
-  const [detailMap, setDetailMap] = useState({}); // { [truck_id]: data | 'loading' | 'error' }
+  const [expanded, setExpanded] = useState(null);
+  const [detailMap, setDetailMap] = useState({});
 
   const fetchTrucks = useCallback(async () => {
     setLoading(true);

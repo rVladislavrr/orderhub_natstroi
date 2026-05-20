@@ -9,7 +9,7 @@ import useInfiniteMarks from '../../hooks/useInfiniteMarks';
 import usePermission from '../../hooks/usePermissions';
 import OrderHeader from './components/OrderHeader/OrderHeader';
 import FileUploadSection from './components/FileUploadSection/FileUploadSection';
-import { getOrderInfo } from '../../api/ordersApi'
+import { getOrderInfo } from '../../api/ordersApi';
 
 const OrderDetailsPage = () => {
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ const OrderDetailsPage = () => {
   const { marks, loading: marksLoading, lastElementRef, resetMarks } = useInfiniteMarks(selectedKmd?.uuid, sortBy, orderBy, activeFilters);
 
   const hasPermission = usePermission();
-  const canImportExcel = hasPermission('order', 2);
+  const canChanges = hasPermission('order', 2);
 
   useEffect(() => {
     const fetchOrderInfo = async () => {
@@ -104,7 +104,7 @@ const OrderDetailsPage = () => {
         </button>
       </div>
 
-      {canImportExcel && (
+      {canChanges && (
         <FileUploadSection
           orderUuid={location.state?.uuid}
           files={order.files}
@@ -125,6 +125,7 @@ const OrderDetailsPage = () => {
         lastElementRef={lastElementRef}
         onFilterChange={handleFilterChange}
         activeFilters={activeFilters}
+        canChanges={canChanges}
       />
     </div>
   );
