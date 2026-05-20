@@ -1,0 +1,320 @@
+.trucks-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.trucks-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.trucks-count {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.trucks-refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 7px;
+  background: white;
+  font-family: inherit;
+  font-size: 13px;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.trucks-refresh-btn:hover {
+  border-color: #004e8d;
+  color: #004e8d;
+  background: #f0f6ff;
+}
+
+.trucks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.truck-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.truck-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 2px 8px rgba(0, 78, 141, 0.08);
+}
+
+.truck-card--open {
+  border-color: #93c5fd;
+}
+
+.truck-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  cursor: pointer;
+  user-select: none;
+  gap: 12px;
+}
+
+.truck-card-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+.truck-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  background: #e8f0f9;
+  color: #004e8d;
+  flex-shrink: 0;
+}
+
+.truck-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.truck-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.truck-meta-date {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.truck-meta-items {
+  font-size: 12px;
+  color: #94a3b8;
+  padding: 2px 8px;
+  background: #f1f5f9;
+  border-radius: 20px;
+}
+
+.truck-meta-weight {
+  font-size: 13px;
+  font-weight: 600;
+  color: #004e8d;
+  font-variant-numeric: tabular-nums;
+}
+
+.truck-card-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.truck-note-icon {
+  font-size: 14px;
+  cursor: default;
+}
+
+.truck-arrow {
+  color: #94a3b8;
+  transition: transform 0.2s;
+}
+
+.truck-arrow--open {
+  transform: rotate(180deg);
+}
+
+.truck-detail {
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 16px 20px;
+}
+
+.truck-detail-error {
+  color: #dc2626;
+  font-size: 14px;
+  padding: 8px 0;
+}
+
+.truck-detail-empty {
+  color: #94a3b8;
+  font-size: 14px;
+  text-align: center;
+  padding: 16px;
+}
+
+.truck-detail-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.truck-detail-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fefce8;
+  border: 1px solid #fde047;
+  border-radius: 7px;
+  font-size: 13px;
+  color: #713f12;
+}
+
+.truck-detail-note-label {
+  font-weight: 600;
+  color: #854d0e;
+}
+
+.truck-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.truck-item {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.truck-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  gap: 12px;
+}
+
+.truck-item-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.truck-item-type {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.truck-item-size {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #f1f5f9;
+  color: #475569;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+}
+
+.truck-item-weight {
+  font-size: 15px;
+  font-weight: 700;
+  color: #004e8d;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.truck-item-allocs {
+  padding: 6px 14px 10px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbfc;
+}
+
+.truck-alloc-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+/* .truck-alloc-row--stock {
+  нераспределённый остаток на склад
+} */
+
+.truck-alloc-kmd {
+  flex: 1;
+  color: #475569;
+}
+
+.truck-alloc-stock {
+  color: #0f766e;
+  font-weight: 600;
+  font-style: italic;
+}
+
+.truck-alloc-weight {
+  font-weight: 600;
+  color: #1e293b;
+  font-variant-numeric: tabular-nums;
+}
+
+.truck-alloc-weight--stock {
+  color: #0f766e;
+}
+
+.trucks-empty {
+  text-align: center;
+  padding: 56px 24px;
+  color: #94a3b8;
+  font-size: 16px;
+  background: #f8fafc;
+  border: 1px dashed #e2e8f0;
+  border-radius: 10px;
+}
+
+.trucks-empty-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.trucks-empty-sub {
+  font-size: 14px;
+  margin-top: 6px;
+  color: #b0bac4;
+}
+
+.trucks-error {
+  padding: 14px 18px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #dc2626;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: 14px;
+}

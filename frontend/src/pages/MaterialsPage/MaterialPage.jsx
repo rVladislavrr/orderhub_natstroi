@@ -3,12 +3,25 @@ import LoadingDots from '../../components/LoadingDots/LoadingDots';
 import { getActiveMaterials, getMaterialsByOrder } from '../../api/materialsApi';
 import { getOrders } from '../../api/ordersApi';
 import { getStatusColor } from '../../utils/statusUtils';
+import StockTab from './StockTab/StockTab';
+import CreateDeliveryTab from './CreateDeliveryTab/CreateDeliveryTab';
 import './MaterialPage.css';
+import TrucksTab from './TrucksTab/TrucksTab';
 
 const PAGE_LIMIT = 100;
 
+const TABS = [
+  { id: 'active', label: 'Все активные заказы' },
+  { id: 'order', label: 'По заказу' },
+  { id: 'stock', label: 'Складской остаток' },
+  { id: 'create', label: 'Создать поставку' },
+  { id: 'trucks', label: 'История поставок' },
+];
+
 export default function MaterialsPage() {
   const [mode, setMode] = useState('active');
+  const [trucksRefreshKey, setTrucksRefreshKey] = useState(0);
+
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderDropdownOpen, setOrderDropdownOpen] = useState(false);
   const [orderSearch, setOrderSearch] = useState('');
@@ -35,14 +48,12 @@ export default function MaterialsPage() {
   const bottomRef = useRef(null);
   const observerRef = useRef(null);
   const dropdownRef = useRef(null);
-
   const modeRef = useRef(mode);
   const selectedOrderRef = useRef(selectedOrder);
 
   useEffect(() => {
     modeRef.current = mode;
   }, [mode]);
-
   useEffect(() => {
     selectedOrderRef.current = selectedOrder;
   }, [selectedOrder]);
@@ -108,16 +119,12 @@ export default function MaterialsPage() {
   }, []);
 
   useEffect(() => {
-    if (mode === 'active') {
-      fetchActive(1);
-    }
+    if (mode === 'active') fetchActive(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
   useEffect(() => {
-    if (orderDropdownOpen && !ordersHasLoaded) {
-      fetchOrders();
-    }
+    if (orderDropdownOpen && !ordersHasLoaded) fetchOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderDropdownOpen]);
 
@@ -132,14 +139,10 @@ export default function MaterialsPage() {
   }, [selectedOrder]);
 
   useEffect(() => {
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-    }
-
+    if (observerRef.current) observerRef.current.disconnect();
     const isActive = mode === 'active';
     const hasMore = isActive ? activeHasMore : orderHasMore;
     const loadingMore = isActive ? activeLoadingMore : orderLoadingMore;
-
     if (!hasMore || loadingMore) return;
 
     observerRef.current = new IntersectionObserver(
@@ -147,25 +150,15 @@ export default function MaterialsPage() {
         if (entries[0].isIntersecting) {
           const currentMode = modeRef.current;
           const currentOrder = selectedOrderRef.current;
-
-          if (currentMode === 'active') {
-            fetchActive(activePage + 1, true);
-          } else if (currentOrder?.uuid) {
-            fetchOrder(currentOrder.uuid, orderPage + 1, true);
-          }
+          if (currentMode === 'active') fetchActive(activePage + 1, true);
+          else if (currentOrder?.uuid) fetchOrder(currentOrder.uuid, orderPage + 1, true);
         }
       },
       { threshold: 0.1 },
     );
-
-    if (bottomRef.current) {
-      observerRef.current.observe(bottomRef.current);
-    }
-
+    if (bottomRef.current) observerRef.current.observe(bottomRef.current);
     return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
+      if (observerRef.current) observerRef.current.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, activeHasMore, activeLoadingMore, activePage, orderHasMore, orderLoadingMore, orderPage, selectedOrder]);
@@ -175,14 +168,27 @@ export default function MaterialsPage() {
     if (m === 'active' && !activeData) fetchActive(1);
   };
 
-  const handleToggleDropdown = () => {
-    setOrderDropdownOpen((v) => !v);
-  };
-
+  const handleToggleDropdown = () => setOrderDropdownOpen((v) => !v);
   const handleSelectOrder = (order) => {
     setSelectedOrder(order);
     setOrderDropdownOpen(false);
     setOrderSearch('');
+  };
+
+  // Функция для принудительного обновления активных заказов
+  const refreshActive = () => {
+    setActiveRows([]);
+    setActivePage(1);
+    fetchActive(1, false);
+  };
+
+  // Функция для принудительного обновления заказа
+  const refreshOrder = () => {
+    if (selectedOrder) {
+      setOrderRows([]);
+      setOrderPage(1);
+      fetchOrder(selectedOrder.uuid, 1, false);
+    }
   };
 
   const filteredOrders = orders.filter((o) => {
@@ -202,6 +208,116 @@ export default function MaterialsPage() {
 
   const formatNum = (n) => (n == null ? '—' : n === 0 ? <span className="mat-zero">—</span> : n.toLocaleString('ru-RU'));
 
+  const isTableMode = mode === 'active' || mode === 'order';
+
+  // ──── Кнопка обновления (переиспользуемая) ────
+  const RefreshButton = ({ onClick }) => (
+    <button
+      className="mat-refresh-btn"
+      onClick={onClick}
+      title="Обновить"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <polyline points="23 4 23 10 17 10" />
+        <polyline points="1 20 1 14 7 14" />
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+      </svg>
+      Обновить
+    </button>
+  );
+
+  // ──── Дропдаун выбора заказа ────
+  const OrderDropdown = (
+    <div
+      className="mat-order-dropdown mat-order-dropdown--inline"
+      ref={dropdownRef}
+    >
+      <button
+        className={`mat-order-toggle ${selectedOrder ? 'mat-order-toggle--selected' : ''}`}
+        onClick={handleToggleDropdown}
+      >
+        <span className="mat-order-toggle-text">{selectedOrder ? `№${selectedOrder.internal_num_orders} — ${selectedOrder.name}` : 'Выберите заказ...'}</span>
+        <svg
+          className={`mat-order-arrow ${orderDropdownOpen ? 'mat-order-arrow--open' : ''}`}
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <path
+            d="M6 9l6 6 6-6"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+
+      {orderDropdownOpen && (
+        <div className="mat-order-menu">
+          {ordersLoading && <div className="mat-order-loading-bar" />}
+          <div className="mat-order-search-wrap">
+            <svg
+              className="mat-order-search-icon"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="8"
+                strokeWidth="2"
+              />
+              <path
+                d="M21 21l-4.35-4.35"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+            <input
+              className="mat-order-search-input"
+              type="text"
+              placeholder="Поиск по номеру или названию..."
+              value={orderSearch}
+              onChange={(e) => setOrderSearch(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className="mat-order-list">
+            {!ordersHasLoaded && <div className="mat-order-empty">Загрузка заказов...</div>}
+            {ordersHasLoaded && filteredOrders.length === 0 && <div className="mat-order-empty">Заказы не найдены</div>}
+            {ordersHasLoaded &&
+              filteredOrders.map((order) => (
+                <div
+                  key={order.uuid}
+                  className={`mat-order-option ${selectedOrder?.uuid === order.uuid ? 'mat-order-option--active' : ''}`}
+                  style={{ '--status-color': getStatusColor(order.status) }}
+                  onClick={() => handleSelectOrder(order)}
+                >
+                  <span className="mat-order-num">№{order.internal_num_orders}</span>
+                  <span className="mat-order-name">{order.name}</span>
+                  {order.status && <span className="mat-order-status-badge">{order.status}</span>}
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="materials-page">
       <div className="mat-header">
@@ -211,235 +327,162 @@ export default function MaterialsPage() {
 
       <div className="mat-controls">
         <div className="mat-mode-tabs">
-          <button
-            className={`mat-tab ${mode === 'active' ? 'mat-tab--active' : ''}`}
-            onClick={() => handleModeSwitch('active')}
-          >
-            Все активные заказы
-          </button>
-          <button
-            className={`mat-tab ${mode === 'order' ? 'mat-tab--active' : ''}`}
-            onClick={() => handleModeSwitch('order')}
-          >
-            По заказу
-          </button>
-        </div>
-
-        {mode === 'order' && (
-          <div
-            className="mat-order-dropdown"
-            ref={dropdownRef}
-          >
+          {TABS.map((tab) => (
             <button
-              className={`mat-order-toggle ${selectedOrder ? 'mat-order-toggle--selected' : ''}`}
-              onClick={handleToggleDropdown}
+              key={tab.id}
+              className={`mat-tab ${mode === tab.id ? 'mat-tab--active' : ''}`}
+              onClick={() => handleModeSwitch(tab.id)}
             >
-              <span className="mat-order-toggle-text">{selectedOrder ? `№${selectedOrder.internal_num_orders} — ${selectedOrder.name}` : 'Выберите заказ...'}</span>
-              <svg
-                className={`mat-order-arrow ${orderDropdownOpen ? 'mat-order-arrow--open' : ''}`}
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-              >
-                <path
-                  d="M6 9l6 6 6-6"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              {tab.label}
             </button>
-
-            {orderDropdownOpen && (
-              <div className="mat-order-menu">
-                {ordersLoading && <div className="mat-order-loading-bar" />}
-
-                <div className="mat-order-search-wrap">
-                  <svg
-                    className="mat-order-search-icon"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                  >
-                    <circle
-                      cx="11"
-                      cy="11"
-                      r="8"
-                      strokeWidth="2"
-                    />
-                    <path
-                      d="M21 21l-4.35-4.35"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <input
-                    className="mat-order-search-input"
-                    type="text"
-                    placeholder="Поиск по номеру или названию..."
-                    value={orderSearch}
-                    onChange={(e) => setOrderSearch(e.target.value)}
-                    autoFocus
-                  />
-                </div>
-
-                <div className="mat-order-list">
-                  {!ordersHasLoaded && <div className="mat-order-empty">Загрузка заказов...</div>}
-                  {ordersHasLoaded && filteredOrders.length === 0 && <div className="mat-order-empty">Заказы не найдены</div>}
-                  {ordersHasLoaded &&
-                    filteredOrders.map((order) => (
-                      <div
-                        key={order.uuid}
-                        className={`mat-order-option ${selectedOrder?.uuid === order.uuid ? 'mat-order-option--active' : ''}`}
-                        style={{ '--status-color': getStatusColor(order.status) }}
-                        onClick={() => handleSelectOrder(order)}
-                      >
-                        <span className="mat-order-num">№{order.internal_num_orders}</span>
-                        <span className="mat-order-name">{order.name}</span>
-                        {order.status && <span className="mat-order-status-badge">{order.status}</span>}
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+          ))}
+        </div>
       </div>
 
-      {mode === 'order' && orderData && (
-        <div className="mat-order-meta">
-          {orderData.order && (
-            <>
-              <span className="mat-meta-item">
-                <span className="mat-meta-label">Заказ:</span>
-                <span className="mat-meta-value">№{orderData.order.internal_num_orders}</span>
+      {mode === 'stock' && <StockTab />}
+      {mode === 'create' && (
+        <CreateDeliveryTab
+          onCreated={() => {
+            setTrucksRefreshKey((k) => k + 1);
+          }}
+        />
+      )}
+      {mode === 'trucks' && <TrucksTab refreshKey={trucksRefreshKey} />}
+
+      {isTableMode && (
+        <>
+          {mode === 'order' && <div className="mat-order-selector-row">{OrderDropdown}</div>}
+
+          {mode === 'order' && orderData && (
+            <div className="mat-order-meta">
+              {orderData.order && (
+                <>
+                  <span className="mat-meta-item">
+                    <span className="mat-meta-label">Заказ:</span>
+                    <span className="mat-meta-value">№{orderData.order.internal_num_orders}</span>
+                  </span>
+                  <span className="mat-meta-sep" />
+                  <span className="mat-meta-item">
+                    <span className="mat-meta-label">Название:</span>
+                    <span className="mat-meta-value">{orderData.order.name}</span>
+                  </span>
+                  <span className="mat-meta-sep" />
+                  <span className="mat-meta-item">
+                    <span className="mat-meta-label">Статус:</span>
+                    <span className="mat-meta-value">{orderData.order.status}</span>
+                  </span>
+                </>
+              )}
+              <span className="mat-meta-item mat-meta-right">
+                <span className="mat-meta-label">Итого:</span>
+                <span className="mat-meta-value mat-meta-total">{currentData?.grand_total?.toLocaleString('ru-RU')} кг</span>
               </span>
-              <span className="mat-meta-sep" />
-              <span className="mat-meta-item">
-                <span className="mat-meta-label">Название:</span>
-                <span className="mat-meta-value">{orderData.order.name}</span>
-              </span>
-              <span className="mat-meta-sep" />
-              <span className="mat-meta-item">
-                <span className="mat-meta-label">Статус:</span>
-                <span className="mat-meta-value">{orderData.order.status}</span>
-              </span>
-            </>
+              <RefreshButton onClick={refreshOrder} />
+            </div>
           )}
-          <span className="mat-meta-item mat-meta-right">
-            <span className="mat-meta-label">Итого:</span>
-            <span className="mat-meta-value mat-meta-total">{currentData?.grand_total?.toLocaleString('ru-RU')} кг</span>
-          </span>
-        </div>
-      )}
 
-      {mode === 'active' && activeData && (
-        <div className="mat-order-meta">
-          <span className="mat-meta-item">
-            <span className="mat-meta-label">Активных заказов:</span>
-            <span className="mat-meta-value">{activeData.orders_count}</span>
-          </span>
-          <span className="mat-meta-item mat-meta-right">
-            <span className="mat-meta-label">Итого:</span>
-            <span className="mat-meta-value mat-meta-total">{currentData?.grand_total?.toLocaleString('ru-RU')} кг</span>
-          </span>
-        </div>
-      )}
+          {mode === 'active' && activeData && (
+            <div className="mat-order-meta">
+              <span className="mat-meta-item">
+                <span className="mat-meta-label">Активных заказов:</span>
+                <span className="mat-meta-value">{activeData.orders_count}</span>
+              </span>
+              <span className="mat-meta-item mat-meta-right">
+                <span className="mat-meta-label">Итого:</span>
+                <span className="mat-meta-value mat-meta-total">{currentData?.grand_total?.toLocaleString('ru-RU')} кг</span>
+              </span>
+              <RefreshButton onClick={refreshActive} />
+            </div>
+          )}
 
-      {currentError && (
-        <div className="mat-error">
-          <span>Нет КМД для этого заказа</span>
-        </div>
-      )}
+          {currentError && (
+            <div className="mat-error">
+              <span>Нет КМД для этого заказа</span>
+            </div>
+          )}
 
-      {currentLoading && <LoadingDots />}
+          {currentLoading && <LoadingDots />}
 
-      {!currentLoading && currentRows.length > 0 && (
-        <div className="mat-table-wrapper">
-          <table className="mat-table">
-            <thead>
-              <tr>
-                <th className="mat-th mat-th-sticky mat-th-profile">Профиль</th>
-                <th className="mat-th mat-th-sticky mat-th-grade">Марка стали</th>
-                {currentColumns.map((col) => (
-                  <th
-                    key={col}
-                    className="mat-th mat-th-col"
-                  >
-                    {col}
-                  </th>
-                ))}
-                <th className="mat-th mat-th-total">Итого</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentRows.map((row, i) => (
-                <tr
-                  key={`${row.profile}-${row.steel_grade}-${i}`}
-                  className="mat-row"
-                >
-                  <td className="mat-td mat-td-sticky mat-td-profile">{row.profile}</td>
-                  <td className="mat-td mat-td-sticky mat-td-grade">
-                    <span className="mat-grade-badge">{row.steel_grade}</span>
-                  </td>
-                  {currentColumns.map((col) => (
-                    <td
-                      key={col}
-                      className="mat-td mat-td-num"
+          {!currentLoading && currentRows.length > 0 && (
+            <div className="mat-table-wrapper">
+              <table className="mat-table">
+                <thead>
+                  <tr>
+                    <th className="mat-th mat-th-sticky mat-th-profile">Профиль</th>
+                    <th className="mat-th mat-th-sticky mat-th-grade">Марка стали</th>
+                    {currentColumns.map((col) => (
+                      <th
+                        key={col}
+                        className="mat-th mat-th-col"
+                      >
+                        {col}
+                      </th>
+                    ))}
+                    <th className="mat-th mat-th-total">Итого</th>
+                    <th className="mat-th mat-th-deficit">Дефицит</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentRows.map((row, i) => (
+                    <tr
+                      key={`${row.profile}-${row.steel_grade}-${i}`}
+                      className="mat-row"
                     >
-                      {formatNum(row.totals?.[col])}
-                    </td>
+                      <td className="mat-td mat-td-sticky mat-td-profile">{row.profile}</td>
+                      <td className="mat-td mat-td-sticky mat-td-grade">
+                        <span className="mat-grade-badge">{row.steel_grade}</span>
+                      </td>
+                      {currentColumns.map((col) => (
+                        <td
+                          key={col}
+                          className="mat-td mat-td-num"
+                        >
+                          {formatNum(row.totals?.[col])}
+                        </td>
+                      ))}
+                      <td className="mat-td mat-td-num mat-td-grand">{row.grand_total?.toLocaleString('ru-RU')}</td>
+                      <td className={`mat-td mat-td-num ${(row.deficit ?? 0) > 0 ? 'mat-td-deficit' : 'mat-td-deficit--zero'}`}>{row.deficit != null ? row.deficit.toLocaleString('ru-RU') : '—'}</td>
+                    </tr>
                   ))}
-                  <td className="mat-td mat-td-num mat-td-grand">{row.grand_total?.toLocaleString('ru-RU')}</td>
-                </tr>
-              ))}
-            </tbody>
-            {currentData?.column_totals && (
-              <tfoot>
-                <tr className="mat-foot-row">
-                  <td
-                    className="mat-td mat-td-sticky mat-foot-label"
-                    colSpan={2}
-                  >
-                    Итого
-                  </td>
-                  {currentColumns.map((col) => (
-                    <td
-                      key={col}
-                      className="mat-td mat-td-num mat-foot-num"
-                    >
-                      {currentData.column_totals[col]?.toLocaleString('ru-RU') ?? '—'}
-                    </td>
-                  ))}
-                  <td className="mat-td mat-td-num mat-foot-num mat-td-grand">{currentData.grand_total?.toLocaleString('ru-RU')}</td>
-                </tr>
-              </tfoot>
-            )}
-          </table>
-        </div>
+                </tbody>
+                {currentData?.column_totals && (
+                  <tfoot>
+                    <tr className="mat-foot-row">
+                      <td
+                        className="mat-td mat-td-sticky mat-foot-label"
+                        colSpan={2}
+                      >
+                        Итого
+                      </td>
+                      {currentColumns.map((col) => (
+                        <td
+                          key={col}
+                          className="mat-td mat-td-num mat-foot-num"
+                        >
+                          {currentData.column_totals[col]?.toLocaleString('ru-RU') ?? '—'}
+                        </td>
+                      ))}
+                      <td className="mat-td mat-td-num mat-foot-num mat-td-grand">{currentData.grand_total?.toLocaleString('ru-RU')}</td>
+                      <td className="mat-td mat-td-num mat-foot-num mat-td-grand">{currentData.total_deficit?.toLocaleString('ru-RU') ?? '—'}</td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+          )}
+
+          {!currentLoading && !currentError && currentRows.length === 0 && mode === 'order' && selectedOrder && <div className="mat-empty">Нет данных по этому заказу</div>}
+          {!currentLoading && !currentError && currentRows.length === 0 && mode === 'order' && !selectedOrder && <div className="mat-empty">Выберите заказ для просмотра материалов</div>}
+
+          <div
+            ref={bottomRef}
+            className="mat-bottom-sentinel"
+          >
+            {currentLoadingMore && <LoadingDots />}
+            {!currentLoadingMore && currentHasMore && <div className="mat-load-hint">Загружаем ещё...</div>}
+          </div>
+        </>
       )}
-
-      {!currentLoading && !currentError && currentRows.length === 0 && mode === 'order' && selectedOrder && <div className="mat-empty">Нет данных по этому заказу</div>}
-      {!currentLoading && !currentError && currentRows.length === 0 && mode === 'order' && !selectedOrder && <div className="mat-empty">Выберите заказ для просмотра материалов</div>}
-
-      <div
-        ref={bottomRef}
-        className="mat-bottom-sentinel"
-      >
-        {currentLoadingMore && <LoadingDots />}
-        {!currentLoadingMore && currentHasMore && <div className="mat-load-hint">Загружаем ещё...</div>}
-      </div>
-
-      {/* на будущее
-       {currentData?.pagination && (
-        <div className="mat-pagination-info">
-          Показано {currentRows.length} из {currentData.pagination.total_items} строк
-        </div>
-      )} */}
     </div>
   );
 }

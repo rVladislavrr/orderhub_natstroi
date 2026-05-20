@@ -46,6 +46,8 @@ const Header = () => {
         return 'Сотрудники';
       case '/materials':
         return 'Склад';
+      case '/work-journal':
+        return 'Журнал работ';
       default:
         if (location.pathname.startsWith('/orders/')) return 'Детали заказа';
         return 'Страница';

@@ -56,12 +56,10 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
     return 'Новый';
   };
 
-  // Статус марки считается фронтенд-логикой на основе assembled/shipped и quantity
   const calculateMarkStatus = (mark) => {
     const { quantity, assembled_quantity, shipped_quantity } = mark;
     if (shipped_quantity >= quantity) return 'Отгружен';
     if (assembled_quantity >= quantity) return 'Собран';
-    // Проверяем: все детали завершены?
     const details = markDetails[mark.id]?.details;
     if (details && details.length > 0) {
       const allDone = details.every((d) => d.remaining_quantity === 0);
@@ -112,8 +110,6 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
   const handleAssembleSubmit = async (formData) => {
     const markId = assembleModal.mark.id;
 
-    console.log('1. Начало');
-
     try {
       const response = await assembleMark(markId, {
         user_uuid: formData.workerUuid,
@@ -121,21 +117,16 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
         completion_date: formData.completionDate,
       });
 
-      console.log('2. После запроса', response);
-
-      // Используем onMarkUpdate вместо setMarks
       onMarkUpdate(markId, {
         assembled_quantity: response.assembled_quantity,
         mark_status: response.mark_status,
       });
 
-      console.log('3. После onMarkUpdate');
       toast.success(response.message || 'Сборка записана');
       setAssembleModal({ isOpen: false, mark: null });
-      console.log('4. Конец');
     } catch (error) {
       console.error('Ошибка при сборке:', error);
-      throw error; // Важно пробросить ошибку!
+      throw error;
     }
   };
 
@@ -149,7 +140,6 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
         completion_date: formData.completionDate,
       });
 
-      // Используем onMarkUpdate вместо setMarks
       onMarkUpdate(mark.id, {
         shipped_quantity: response.shipped_quantity || mark.shipped_quantity + formData.quantity,
         mark_status: response.mark_status,
@@ -202,7 +192,6 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
 
                       <div className="mark-info-divider" />
 
-                      {/* Статус марки */}
                       <span
                         className="status-badge"
                         style={{ backgroundColor: getStatusColor(markStatus) }}
@@ -263,7 +252,6 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
 
                   {isExpanded && (
                     <div className="mark-details">
-                      {/* Кнопки и счётчики */}
                       <div className="mark-actions-bar">
                         <div className="mark-counters">
                           <span className="mark-counter">
@@ -297,7 +285,6 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
                         </div>
                       </div>
 
-                      {/* Таблица деталей */}
                       {detailsLoading[mark.id] ? (
                         <LoadingDots inline />
                       ) : (
@@ -370,7 +357,6 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
 
       {marksLoading && <LoadingDots inline />}
 
-      {/* Модалка выполнения деталей */}
       <ExecutionModal
         isOpen={executionModal.isOpen}
         onClose={handleCloseExecution}
@@ -379,7 +365,6 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
         onSubmit={handleExecutionSubmit}
       />
 
-      {/* Модалка сборки марки */}
       <AssembleModal
         isOpen={assembleModal.isOpen}
         onClose={() => setAssembleModal({ isOpen: false, mark: null })}
@@ -387,7 +372,6 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
         onSubmit={handleAssembleSubmit}
       />
 
-      {/* Модалка отгрузки марки */}
       <ShipModal
         isOpen={shipModal.isOpen}
         onClose={() => setShipModal({ isOpen: false, mark: null })}

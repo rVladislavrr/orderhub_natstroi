@@ -53,7 +53,7 @@ const AssembleModal = ({ isOpen, onClose, mark, onSubmit }) => {
     try {
       await onSubmit(formData);
     } catch {
-      setError('Ошибка при сохранении');
+      setError('Ошибка: нет выполненных деталей для сборки марки!');
       setSaving(false);
     }
   };

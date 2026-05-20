@@ -1,0 +1,101 @@
+/* ── AutocompleteInput ─────────────────────────────────────────── */
+
+.ac-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.ac-input-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Инпут растягивается на всю ширину */
+.ac-input-row .cd-input {
+  width: 100%;
+  padding-right: 30px; /* место под иконку спиннера/крестик */
+}
+
+/* Спиннер */
+.ac-spinner {
+  position: absolute;
+  right: 9px;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #cbd5e1;
+  border-top-color: #004e8d;
+  border-radius: 50%;
+  animation: ac-spin 0.6s linear infinite;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+@keyframes ac-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Крестик очистки */
+.ac-clear-btn {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: #94a3b8;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.ac-clear-btn:hover {
+  background: #64748b;
+}
+
+/* Дропдаун */
+.ac-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  z-index: 100;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.ac-dropdown--empty {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.ac-option {
+  padding: 8px 14px;
+  font-size: 14px;
+  color: #1e293b;
+  cursor: pointer;
+  transition: background 0.1s;
+  user-select: none;
+}
+
+.ac-option:hover,
+.ac-option--active {
+  background: #eff6ff;
+  color: #004e8d;
+}

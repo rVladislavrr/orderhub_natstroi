@@ -52,7 +52,7 @@ const ShipModal = ({ isOpen, onClose, mark, onSubmit }) => {
     try {
       await onSubmit(formData);
     } catch {
-      setError('Ошибка при сохранении');
+      setError('Ошибка: нет собранных марок для отгрузки!'); 
       setSaving(false);
     }
   };
