@@ -9,7 +9,7 @@ from src.shemas.files import FileRead
 class OrdersCreate(BaseModel):
     name: str
     internal_num_orders: int  # 646
-    num_orders: int  # 361070
+    num_orders: str  # 361070
     num_project: str  # 2260-60(1)-23-kmd
     internal_create_date: date
 
@@ -26,7 +26,12 @@ class OrdersRead(OrdersCreate):
             OrderStatus: lambda status: status.value
         }
 
-class OrdersUpdate(OrdersCreate):
+class OrdersUpdate(BaseModel):
+    name: str | None = None
+    internal_num_orders: int | None = None # 646
+    num_orders: str | None = None # 361070
+    num_project: str | None = None # 2260-60(1)-23-kmd
+    internal_create_date: date| None = None
     pass
 
 class OrdersReadFile(OrdersRead):

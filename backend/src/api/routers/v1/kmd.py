@@ -16,11 +16,11 @@ from src.shemas.pagination import Filters
 log = logging.getLogger('KMD роутер')
 
 router = APIRouter(
-    tags=["orders"],
+    tags=["kmd"],
 )
 
 
-@router.get('/{kmd_uuid}')
+@router.get('/{kmd_uuid}', summary='Получение конкретного кмд')
 async def get_kmd(
         request: Request,
         kmd_uuid: UUID4,
@@ -47,7 +47,8 @@ async def get_kmd(
 
 
 @router.get(
-    '/{kmd_uuid}/marks'
+    '/{kmd_uuid}/marks',
+summary='Получение всех макрок из кмд'
 )
 async def get_marks(
         request: Request,
@@ -101,7 +102,8 @@ async def get_marks(
 
 
 @router.get(
-    '/{kmd_uuid}/filters'
+    '/{kmd_uuid}/filters',
+summary='Получение всех фильтров в кмд'
 )
 async def get_filters(request: Request, kmd_uuid: UUID4,
                       column: Literal['name', 'cooperation', 'mounting_part'] = Query(..., ),

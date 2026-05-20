@@ -10,7 +10,6 @@ log = logging.getLogger('Логгермидделвеир')
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     max_size = 30 * 1024 * 1024
-    c = 0
 
     async def dispatch(self, request: Request, call_next):
         request_id = str(uuid.uuid4())
@@ -28,6 +27,4 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         log.info('Начало выполнения запроса')
         res = await call_next(request)
         log.info(f'Конец выполнения запроса, за время { time.time() - start_time}')
-        self.c += 1
-        log.info(f'Количество выполненных запросов со старта: {self.c}')
         return res

@@ -10,7 +10,7 @@ from datetime import date
 
 class OrderStatus(str, Enum):
     NEW = "Новый"
-    IN_PROGRESS = "В разработке"
+    IN_PROGRESS = "В работе"
     COMPLETED = "Завершен"
     CANCELLED = "Отменен"
 
@@ -34,7 +34,7 @@ class Orders(Base):
         unique=True,
     )
 
-    num_orders: Mapped[int] = mapped_column(
+    num_orders: Mapped[str] = mapped_column(
         nullable=False,
         comment='Номер заказа',
         unique=True,
