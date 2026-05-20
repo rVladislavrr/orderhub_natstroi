@@ -206,8 +206,8 @@ def build_level(groups: dict, levels: List[GroupByLevel], depth: int) -> List[Gr
         unique_marks = set()
 
         for item in group_items:
-            total_quantity += item.get('quantity', 0)  # количество деталей уже для марки
-            total_weight += item.get('total_weight_for_position', 0)  # количество деталей на вес деталей
+            total_quantity += item.get('quantity', 0)
+            total_weight += item.get('total_weight_for_position', 0)
             mark_key = (item.get('mark_title', ''))
 
             if mark_key not in unique_marks:

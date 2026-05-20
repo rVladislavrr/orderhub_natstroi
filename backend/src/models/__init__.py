@@ -9,6 +9,7 @@ from .rel_markadet import RelMarkaDel
 from .rel_userdel import RelUserDel
 from .rel_usermark import RelUserMark
 from .markshipment import MarkShipment
+from .delivery import DeliveryItem, DeliveryAllocation, DeliveryTruck
 
 __all__ = [
     'Base',
@@ -21,5 +22,8 @@ __all__ = [
     'RelUserDel',
     'RelMarkaDel',
     'RelUserMark',
-    'MarkShipment'
+    'MarkShipment',
+    'DeliveryItem',
+    'DeliveryAllocation',
+    'DeliveryTruck'
 ]

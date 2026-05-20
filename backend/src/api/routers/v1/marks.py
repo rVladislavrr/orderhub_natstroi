@@ -1,9 +1,7 @@
 import logging
 import math
-from datetime import date
 
 from fastapi import APIRouter, Request, status, Query, Depends, HTTPException
-from pydantic import BaseModel, UUID4, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,8 +13,11 @@ from src.models.marks import MarkStatus
 from src.models.markshipment import MarkShipment
 from src.models.rel_usermark import RelUserMark
 from src.shemas import pagination
+from src.shemas.marks import AssembleResponse, AssembleRequest, ShipResponse, ShipRequest, MarkHistoryResponse, \
+    AssemblyHistoryItem
 from src.utils.status_utils import cascade_from_mark
 from workers.tasks.read_excel import update_kmd_shipped_task
+
 router = APIRouter(
     tags=["marks"],
 )
@@ -25,7 +26,7 @@ log = logging.getLogger('Марк роутер')
 
 @router.get(
     '/{marks_id}/details',
-summary='Получение всех деталей в марке'
+    summary='Получение всех деталей в марке'
 )
 async def get_marks(
         request: Request,
@@ -70,70 +71,6 @@ async def get_marks(
     log.info(f'{request_id}| Марки успешно получены')
     return res
 
-
-class AssembleRequest(BaseModel):
-    user_uuid: UUID4 = Field(..., description="UUID пользователя")
-    quantity: int = Field(..., ge=1, description="Количество собранных марок")
-    assembly_date: date = Field(default_factory=date.today)
-
-
-class AssembleResponse(BaseModel):
-    assembly_id: int
-    mark_id: int
-    mark_title: str
-    user_uuid: UUID4
-    quantity: int
-    assembly_date: date
-    assembled_quantity: int  # всего собрано на данный момент
-    total_quantity: int  # сколько марок всего нужно
-    mark_status: str
-    message: str
-
-
-class ShipRequest(BaseModel):
-    user_uuid: UUID4 = Field(..., description="UUID пользователя, оформившего отгрузку")
-    quantity: int = Field(..., ge=1, description="Количество отгружаемых марок")
-    shipment_date: date = Field(default_factory=date.today)
-    note: str | None = Field(None, max_length=500, description="Примечание")
-
-
-class ShipResponse(BaseModel):
-    shipment_id: int
-    mark_id: int
-    mark_title: str
-    user_uuid: UUID4
-    quantity: int
-    shipment_date: date
-    shipped_quantity: int  # всего отгружено на данный момент
-    assembled_quantity: int  # всего собрано
-    total_quantity: int
-    mark_status: str
-    message: str
-
-
-class AssemblyHistoryItem(BaseModel):
-    id: int
-    type: str  # "assembly" или "shipment"
-    user_name: str
-    user_lastname: str
-    quantity: int
-    event_date: date
-
-
-class MarkHistoryResponse(BaseModel):
-    mark_id: int
-    mark_title: str
-    mark_name: str
-    total_quantity: int
-    assembled_quantity: int
-    shipped_quantity: int
-    status: str
-    history: list[AssemblyHistoryItem]
-
-
-# ---------------------------------------------------------------------------
-# POST /marks/{mark_id}/assemble
-# ---------------------------------------------------------------------------
 
 @router.post(
     "/{mark_id}/assemble",
@@ -210,10 +147,6 @@ async def assemble_mark(
         message=message,
     )
 
-
-# ---------------------------------------------------------------------------
-# POST /marks/{mark_id}/ship
-# ---------------------------------------------------------------------------
 
 @router.post(
     "/{mark_id}/ship",
@@ -295,7 +228,6 @@ async def ship_mark(
     )
 
 
-
 @router.get(
     "/{mark_id}/history",
     response_model=MarkHistoryResponse,
@@ -317,7 +249,6 @@ async def get_mark_history(
         select(MarkShipment).where(MarkShipment.mark_id == mark_id)
     )).scalars().all()
 
-    # Подгружаем пользователей
     history: list[AssemblyHistoryItem] = []
 
     for a in assemblies:

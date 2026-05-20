@@ -15,7 +15,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request.method == 'OPTIONS' or request.method == 'HEAD':
             return await call_next(request)
 
-        if (any(request.url.path.endswith(end) for end in ("/docs", "/openapi.json",))
+        if (any(request.url.path.endswith(end) for end in ("/docs", "/openapi.json", '/graphql'))
                 or ("/auth/" in request.url.path)):
             return await call_next(request)
 

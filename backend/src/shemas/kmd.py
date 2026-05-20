@@ -8,6 +8,7 @@ class KMDBase(BaseModel):
     marks_weight: float
     shipped_marks_weight: float
     shipped_marks_count: int
+    status:str
 
 class KMDRead(KMDBase):
     uuid: UUID4

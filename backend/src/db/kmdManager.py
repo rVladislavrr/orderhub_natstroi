@@ -1,7 +1,7 @@
 import logging
 from enum import Enum
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.db.base import BaseManager
 from src.db.connection import async_session_maker
@@ -13,7 +13,7 @@ from src.shemas.pagination import Filters
 log = logging.getLogger('KMD менеджер')
 
 class FilterValue(str, Enum):
-    NULL = "null"
+    NULL = "Нет"
 
 class KmdManager(BaseManager[..., ..., ..., KMD]):
     model = KMD
@@ -115,12 +115,12 @@ class KmdManager(BaseManager[..., ..., ..., KMD]):
         offset = (page - 1) * limit
 
         total_count_subquery = select(func.count()).select_from(Marks).where(
-            Marks.kmd_uuid == kmd_uuid, *filters).scalar_subquery()
+            Marks.kmd_uuid == kmd_uuid, or_(*filters)).scalar_subquery()
 
         query = select(
             Marks,
             total_count_subquery.label('total_count')
-        ).where(Marks.kmd_uuid == kmd_uuid, *filters).offset(offset).limit(limit)
+        ).where(Marks.kmd_uuid == kmd_uuid, or_(*filters)).offset(offset).limit(limit)
 
         if sort_by is not None:
             if sort_by == 'sum_weight':
@@ -160,7 +160,7 @@ class KmdManager(BaseManager[..., ..., ..., KMD]):
         rows = (await session.execute(query)).all()
         return [
             Filters(
-                name=row.value if row.value is not None else 'null',
+                name=row.value if row.value is not None else FilterValue.NULL.value,
                 count=row.count
             )
             for row in rows

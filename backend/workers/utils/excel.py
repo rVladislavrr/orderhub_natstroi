@@ -157,7 +157,7 @@ async def create_get_details(kmd_keys, df_details_full, values_list, session):
         if (str(kmd_keys[row['Номер КМД']]), row['№ позиции']) not in set_kmd_details:
             details_create.append(Details(
                 num_detail=row['№ позиции'],
-                type=row['Прокат'],
+                type=row['Прокат'].capitalize(),
                 size=str(row['Типоразмер проката']),
                 width=row['Ширина, мм'] if row['Ширина, мм'] != '-' and row['Ширина, мм'] != '' else None,
                 length=row['Длина заготовки, мм'],
@@ -182,7 +182,7 @@ async def create_get_marks(kmd_keys, df, values_list, session):
     kmd_marks = (await session.execute(query_get_kmd_marks)).all()
     set_kmd_marks = set([(str(i[0]), i[1]) for i in kmd_marks])
 
-    df_marks = df[[ 'Марка', 'Наименование марки',
+    df_marks = df[['Марка', 'Наименование марки',
                    'Кол-во марок на заказ. шт', 'Вес 1 марки, кг',
                    'Кооперация', 'Признак монтажной детали', 'Номер КМД']].drop_duplicates()
 
