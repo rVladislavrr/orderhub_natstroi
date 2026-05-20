@@ -10,14 +10,23 @@ export const getStatusColor = (status) => {
     case 'Новый':
       return '#009ED8';
 
-    case 'Отменен':
-      return '#000000';
+    case 'Готов':
+      return '#f59e0b';
+
+    case 'Собран':
+      return '#8b5cf6';
 
     case 'Завершен':
       return '#10b981';
 
+    case 'Отгружен':
+      return '#0f766e';
+
+    case 'Отменен':
+      return '#000000';
+
     default:
-      console.warn('Неизвестный статус детали:', status);
+      console.warn('Неизвестный статус:', status);
       return '#009ED8';
   }
 };

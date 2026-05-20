@@ -16,7 +16,6 @@ const formatDate = (iso) => {
 const WorkJournalPage = () => {
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState(null);
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
@@ -82,12 +81,6 @@ const WorkJournalPage = () => {
       }
     };
   }, [pagination, loading, loadingMore, fetchJournal]);
-
-  const handlePageChange = (newPage) => {
-    setPage(newPage);
-    fetchJournal(newPage);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   return (
     <div className="journal-page">
@@ -169,27 +162,7 @@ const WorkJournalPage = () => {
             className="journal-sentinel"
           />
 
-          {pagination && pagination.total_pages > 1 && (
-            <div className="journal-pagination">
-              <button
-                className="journal-page-btn"
-                disabled={!pagination.has_previous}
-                onClick={() => handlePageChange(pagination.previous_page)}
-              >
-                ←
-              </button>
-              <span className="journal-page-info">
-                {pagination.page} / {pagination.total_pages}
-              </span>
-              <button
-                className="journal-page-btn"
-                disabled={!pagination.has_more}
-                onClick={() => handlePageChange(pagination.next_page)}
-              >
-                →
-              </button>
-            </div>
-          )}
+          
         </>
       )}
     </div>

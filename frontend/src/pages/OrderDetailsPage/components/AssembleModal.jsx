@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getWorkers } from '../../../api/workApi';
+import './ExecutionModal/ExecutionModal.css';
 
-const ExecutionModal = ({ isOpen, onClose, detail, markInfo, onSubmit }) => {
+const AssembleModal = ({ isOpen, onClose, mark, onSubmit }) => {
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -11,6 +12,8 @@ const ExecutionModal = ({ isOpen, onClose, detail, markInfo, onSubmit }) => {
     completionDate: new Date().toISOString().split('T')[0],
   });
   const [error, setError] = useState('');
+
+  const remaining = mark ? mark.quantity - mark.assembled_quantity : 0;
 
   useEffect(() => {
     if (isOpen) {
@@ -30,8 +33,7 @@ const ExecutionModal = ({ isOpen, onClose, detail, markInfo, onSubmit }) => {
     try {
       const data = await getWorkers(1, 100);
       setWorkers(data.workers || []);
-    } catch (err) {
-      console.error('Ошибка загрузки пользователей:', err);
+    } catch {
       setError('Не удалось загрузить список исполнителей');
     } finally {
       setLoading(false);
@@ -40,35 +42,18 @@ const ExecutionModal = ({ isOpen, onClose, detail, markInfo, onSubmit }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (saving) return;
-
-    if (!formData.workerUuid) {
-      setError('Выберите исполнителя');
-      return;
-    }
-
-    if (!formData.quantity || formData.quantity <= 0) {
-      setError('Укажите количество больше 0');
-      return;
-    }
-
-    if (formData.quantity > detail.remaining_quantity) {
-      setError(`Количество не может превышать остаток (${detail.remaining_quantity})`);
-      return;
-    }
+    if (!formData.workerUuid) return setError('Выберите исполнителя');
+    if (!formData.quantity || formData.quantity <= 0) return setError('Укажите количество больше 0');
+    if (formData.quantity > remaining) return setError(`Количество не может превышать остаток (${remaining})`);
 
     setSaving(true);
     setError('');
 
     try {
-      await onSubmit({
-        ...formData,
-        detailId: detail.id,
-        relMarkadelId: detail.id,
-      });
-    } catch (error) {
-      setError('Ошибка при сохранении');
+      await onSubmit(formData);
+    } catch {
+      setError('Ошибка: нет выполненных деталей для сборки марки!');
       setSaving(false);
     }
   };
@@ -85,7 +70,7 @@ const ExecutionModal = ({ isOpen, onClose, detail, markInfo, onSubmit }) => {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
-          <h3>Выполнение детали</h3>
+          <h3>Выполнение марки</h3>
           <button
             className="modal-close"
             onClick={onClose}
@@ -94,22 +79,23 @@ const ExecutionModal = ({ isOpen, onClose, detail, markInfo, onSubmit }) => {
             ×
           </button>
         </div>
-
         <div className="modal-body">
           <div className="detail-info">
             <div className="info-row">
-              <span>Деталь:</span>
-              <strong>{detail?.detail?.num_detail || '-'}</strong>
-            </div>
-            <div className="info-row">
               <span>Марка:</span>
               <strong>
-                {markInfo?.title} {markInfo?.name}
+                {mark?.title} {mark?.name}
               </strong>
             </div>
             <div className="info-row">
-              <span>Остаток:</span>
-              <strong>{detail?.remaining_quantity || 0} шт.</strong>
+              <span>Собрано:</span>
+              <strong>
+                {mark?.assembled_quantity}/{mark?.quantity} шт.
+              </strong>
+            </div>
+            <div className="info-row">
+              <span>Осталось собрать:</span>
+              <strong>{remaining} шт.</strong>
             </div>
           </div>
 
@@ -122,30 +108,28 @@ const ExecutionModal = ({ isOpen, onClose, detail, markInfo, onSubmit }) => {
                 disabled={loading || saving}
               >
                 <option value="">Выберите исполнителя</option>
-                {workers.map((worker) => (
+                {workers.map((w) => (
                   <option
-                    key={worker.uuid}
-                    value={worker.uuid}
+                    key={w.uuid}
+                    value={w.uuid}
                   >
-                    {worker.lastname} {worker.name}
+                    {w.lastname} {w.name}
                   </option>
                 ))}
               </select>
             </div>
-
             <div className="form-group">
               <label>Количество:</label>
               <input
                 type="number"
                 min="1"
-                max={detail?.remaining_quantity || 0}
+                max={remaining}
                 value={formData.quantity || ''}
                 onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
-                placeholder={`Макс: ${detail?.remaining_quantity || 0}`}
+                placeholder={`Макс: ${remaining}`}
                 disabled={saving}
               />
             </div>
-
             <div className="form-group">
               <label>Дата выполнения:</label>
               <input
@@ -155,9 +139,7 @@ const ExecutionModal = ({ isOpen, onClose, detail, markInfo, onSubmit }) => {
                 disabled={saving}
               />
             </div>
-
             {error && <div className="form-error">{error}</div>}
-
             <div className="modal-actions">
               <button
                 type="button"
@@ -182,4 +164,4 @@ const ExecutionModal = ({ isOpen, onClose, detail, markInfo, onSubmit }) => {
   );
 };
 
-export default ExecutionModal;
+export default AssembleModal;

@@ -1,5 +1,7 @@
 import React from 'react';
-import { getStatusColor } from '../../../utils/statusUtils';
+
+import './OrderHeader.css'
+import { getStatusColor } from '../../../../utils/statusUtils';
 
 const OrderHeader = ({ order }) => {
   const NumberDisplay = ({ value }) => {
