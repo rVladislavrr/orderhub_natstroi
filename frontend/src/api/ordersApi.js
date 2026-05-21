@@ -154,9 +154,11 @@ export const getOrderMarks = async (kmdUuid, params = {}) => {
   }
 };
 
-export const getMarkDetails = async (markId) => {
+export const getMarkDetails = async (markId, page = 1, limit = 20) => {
   try {
-    const response = await api.get(`/marks/${markId}/details`);
+    const response = await api.get(`/marks/${markId}/details`, {
+      params: { page, limit },
+    });
     return response.data;
   } catch (error) {
     console.error(`Ошибка при получении деталей марки ${markId}:`, error);

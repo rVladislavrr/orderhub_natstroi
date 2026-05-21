@@ -11,10 +11,14 @@ import ExecutionModal from '../ExecutionModal/ExecutionModal';
 import AssembleModal from '../AssembleModal';
 import ShipModal from '../ShipModal';
 
+const DETAILS_PAGE_LIMIT = 10;
+
 const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElementRef, canChanges }) => {
   const [expandedMarkId, setExpandedMarkId] = useState([]);
   const [markDetails, setMarkDetails] = useState({});
   const [detailsLoading, setDetailsLoading] = useState({});
+  const [detailsPagination, setDetailsPagination] = useState({});
+  const [localMarkStatuses, setLocalMarkStatuses] = useState({});
 
   const [executionModal, setExecutionModal] = useState({
     isOpen: false,
@@ -30,6 +34,26 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
     mark: null,
   });
 
+  const fetchMarkDetails = async (markId, page = 1) => {
+    setDetailsLoading((prev) => ({ ...prev, [markId]: true }));
+    try {
+      const data = await getMarkDetails(markId, page, DETAILS_PAGE_LIMIT);
+      setMarkDetails((prev) => ({ ...prev, [markId]: data.details }));
+      setDetailsPagination((prev) => ({
+        ...prev,
+        [markId]: {
+          page: data.pagination.page,
+          totalPages: data.pagination.total_pages,
+          totalItems: data.pagination.total_items,
+        },
+      }));
+    } catch (error) {
+      toast.error('Ошибка при загрузке деталей');
+    } finally {
+      setDetailsLoading((prev) => ({ ...prev, [markId]: false }));
+    }
+  };
+
   const toggleMark = async (markId) => {
     const isExpanded = expandedMarkId.includes(markId);
     if (isExpanded) {
@@ -37,17 +61,13 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
     } else {
       setExpandedMarkId([...expandedMarkId, markId]);
       if (!markDetails[markId]) {
-        setDetailsLoading((prev) => ({ ...prev, [markId]: true }));
-        try {
-          const details = await getMarkDetails(markId);
-          setMarkDetails((prev) => ({ ...prev, [markId]: details }));
-        } catch (error) {
-          toast.error('Ошибка при загрузке деталей');
-        } finally {
-          setDetailsLoading((prev) => ({ ...prev, [markId]: false }));
-        }
+        await fetchMarkDetails(markId, 1);
       }
     }
+  };
+
+  const handlePageChange = async (markId, newPage) => {
+    await fetchMarkDetails(markId, newPage);
   };
 
   const calculateDetailStatus = (remainingQuantity, totalQuantity) => {
@@ -56,7 +76,14 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
     return 'Новый';
   };
 
-  const getMarkStatus = (mark) => mark.status || 'Новый';
+  const getMarkStatus = (mark) => localMarkStatuses[mark.id] ?? mark.status;
+
+  const handleMarkUpdate = (markId, updates) => {
+    if (updates.status) {
+      setLocalMarkStatuses((prev) => ({ ...prev, [markId]: updates.status }));
+    }
+    onMarkUpdate(markId, updates);
+  };
 
   const handleOpenExecution = (detail, mark) => {
     setExecutionModal({ isOpen: true, detail, markInfo: mark });
@@ -85,13 +112,13 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
 
       const markId = executionModal.markInfo?.id;
       setMarkDetails((prev) => {
-        const details = prev[markId]?.details || [];
+        const details = prev[markId] || [];
         const updatedDetails = details.map((d) => (d.id === executionModal.detail.id ? { ...d, remaining_quantity: newRemaining, status: newDetailStatus } : d));
-        return { ...prev, [markId]: { ...prev[markId], details: updatedDetails } };
+        return { ...prev, [markId]: updatedDetails };
       });
 
       if (response?.mark_status) {
-        onMarkUpdate(markId, { status: response.mark_status });
+        handleMarkUpdate(markId, { status: response.mark_status });
       }
 
       toast.success('Выполнение записано');
@@ -111,7 +138,7 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
         completion_date: formData.completionDate,
       });
 
-      onMarkUpdate(markId, {
+      handleMarkUpdate(markId, {
         assembled_quantity: response.assembled_quantity,
         status: response.mark_status,
       });
@@ -134,7 +161,7 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
         completion_date: formData.completionDate,
       });
 
-      onMarkUpdate(mark.id, {
+      handleMarkUpdate(mark.id, {
         shipped_quantity: response.shipped_quantity ?? mark.shipped_quantity + formData.quantity,
         status: response.mark_status,
       });
@@ -169,6 +196,7 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
           {marks.map((mark, index) => {
             const markStatus = getMarkStatus(mark);
             const isExpanded = expandedMarkId.includes(mark.id);
+            const pagination = detailsPagination[mark.id];
 
             return (
               <React.Fragment key={mark.id}>
@@ -284,63 +312,100 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
                       {detailsLoading[mark.id] ? (
                         <LoadingDots inline />
                       ) : (
-                        <div className="details-table-wrapper">
-                          <table className="details-table">
-                            <thead>
-                              <tr>
-                                <th>№ детали</th>
-                                <th>Тип</th>
-                                <th>Размер</th>
-                                <th>Длина</th>
-                                <th>Ширина</th>
-                                <th>Вес</th>
-                                <th>Марка стали</th>
-                                <th>Кол-во</th>
-                                <th>Остаток</th>
-                                <th>Статус</th>
-                                <th>Операция</th>
-                                {canChanges && <th>Выполнение</th>}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {markDetails[mark.id]?.details?.map((detail) => (
-                                <tr key={detail.id}>
-                                  <td>{detail.detail?.num_detail || '-'}</td>
-                                  <td>{detail.detail?.type || '-'}</td>
-                                  <td>{detail.detail?.size || '-'}</td>
-                                  <td>{detail.detail?.length || '-'}</td>
-                                  <td>{detail.detail?.width || '-'}</td>
-                                  <td>{detail.detail?.weight || '-'}</td>
-                                  <td>{detail.detail?.steel_grade || '-'}</td>
-                                  <td>{detail.details_quantity || '-'}</td>
-                                  <td>{detail.remaining_quantity ?? '-'}</td>
-                                  <td>
-                                    <span
-                                      className="status-badge"
-                                      style={{
-                                        backgroundColor: getStatusColor(detail.status || calculateDetailStatus(detail.remaining_quantity, detail.details_quantity)),
-                                      }}
-                                    >
-                                      {detail.status || calculateDetailStatus(detail.remaining_quantity, detail.details_quantity)}
-                                    </span>
-                                  </td>
-                                  <td>{detail.operation || '-'}</td>
-                                  {canChanges && (
-                                    <td>
-                                      <button
-                                        className="execution-button"
-                                        onClick={(e) => handleRowClick(e, () => handleOpenExecution(detail, mark))}
-                                        disabled={detail.remaining_quantity === 0}
-                                      >
-                                        Выполнить
-                                      </button>
-                                    </td>
-                                  )}
+                        <>
+                          <div className="details-table-wrapper">
+                            <table className="details-table">
+                              <thead>
+                                <tr>
+                                  <th>№ детали</th>
+                                  <th>Тип</th>
+                                  <th>Размер</th>
+                                  <th>Длина</th>
+                                  <th>Ширина</th>
+                                  <th>Вес</th>
+                                  <th>Марка стали</th>
+                                  <th>Кол-во</th>
+                                  <th>Остаток</th>
+                                  <th>Статус</th>
+                                  <th>Операция</th>
+                                  {canChanges && <th>Выполнение</th>}
                                 </tr>
+                              </thead>
+                              <tbody>
+                                {markDetails[mark.id]?.map((detail) => (
+                                  <tr key={detail.id}>
+                                    <td>{detail.detail?.num_detail || '-'}</td>
+                                    <td>{detail.detail?.type || '-'}</td>
+                                    <td>{detail.detail?.size || '-'}</td>
+                                    <td>{detail.detail?.length || '-'}</td>
+                                    <td>{detail.detail?.width || '-'}</td>
+                                    <td>{detail.detail?.weight || '-'}</td>
+                                    <td>{detail.detail?.steel_grade || '-'}</td>
+                                    <td>{detail.details_quantity || '-'}</td>
+                                    <td>{detail.remaining_quantity ?? '-'}</td>
+                                    <td>
+                                      <span
+                                        className="status-badge"
+                                        style={{
+                                          backgroundColor: getStatusColor(detail.status || calculateDetailStatus(detail.remaining_quantity, detail.details_quantity)),
+                                        }}
+                                      >
+                                        {detail.status || calculateDetailStatus(detail.remaining_quantity, detail.details_quantity)}
+                                      </span>
+                                    </td>
+                                    <td>{detail.operation || '-'}</td>
+                                    {canChanges && (
+                                      <td>
+                                        <button
+                                          className="execution-button"
+                                          onClick={(e) => handleRowClick(e, () => handleOpenExecution(detail, mark))}
+                                          disabled={detail.remaining_quantity === 0}
+                                        >
+                                          Выполнить
+                                        </button>
+                                      </td>
+                                    )}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          {pagination && pagination.totalPages > 1 && (
+                            <div
+                              className="details-pagination"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button
+                                className="pagination-button"
+                                onClick={() => handlePageChange(mark.id, pagination.page - 1)}
+                                disabled={pagination.page <= 1}
+                              >
+                                ‹
+                              </button>
+
+                              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
+                                <button
+                                  key={p}
+                                  className={`pagination-button ${p === pagination.page ? 'active' : ''}`}
+                                  onClick={() => handlePageChange(mark.id, p)}
+                                >
+                                  {p}
+                                </button>
                               ))}
-                            </tbody>
-                          </table>
-                        </div>
+
+                              <button
+                                className="pagination-button"
+                                onClick={() => handlePageChange(mark.id, pagination.page + 1)}
+                                disabled={pagination.page >= pagination.totalPages}
+                              >
+                                ›
+                              </button>
+
+                              <span className="pagination-info">{pagination.totalItems} дет.</span>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   )}
