@@ -26,6 +26,34 @@
   white-space: nowrap;
 }
 
+.edit-order-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  align-self: center;
+}
+
+.edit-order-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+  color: #1e293b;
+}
+
+.edit-order-btn:active {
+  background-color: #e2e8f0;
+}
+
 .status-info {
   width: clamp(150px, 14vw, 200px);
   height: 40px;
@@ -80,7 +108,23 @@
   font-size: clamp(15px, 1.4vw, 20px);
 }
 
-.marks-info {
+/* ── правая часть: марки + разделитель + отгрузка ── */
+.order-stats-right {
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
+  flex-shrink: 0;
+}
+
+.stats-divider {
+  width: 1px;
+  align-self: stretch;
+  background-color: #e2e8f0;
+  flex-shrink: 0;
+}
+
+.marks-info,
+.shipped-info {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -107,4 +151,57 @@
   font-weight: 600;
   min-width: 80px;
   text-align: right;
+}
+
+/* Цвет цифр отгрузки — зелёный */
+.shipped-value {
+  color: #16a34a;
+}
+
+/* ── Прогресс-бар отгрузки ── */
+.shipped-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 4px;
+  min-width: 180px;
+}
+
+.shipped-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.shipped-progress-label {
+  font-size: clamp(12px, 1vw, 14px);
+  color: #64748b;
+  font-weight: 500;
+}
+
+.shipped-progress-percent {
+  font-size: clamp(13px, 1.1vw, 15px);
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.shipped-progress-track {
+  height: 7px;
+  width: 100%;
+  background-color: #e2e8f0;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.shipped-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #16a34a, #4ade80);
+  border-radius: 99px;
+  transition: width 0.6s ease;
+  min-width: 0;
+}
+
+.name-and-ref-btn {
+  display: flex;
+  justify-content: space-between;
 }

@@ -6,7 +6,31 @@ import SortControls from '../SortControls/SortControls';
 import MarksList from '../MarksList/MarksList';
 import { getStatusColor } from '../../../../utils/statusUtils';
 
-const KmdInfoCard = ({ kmd, loading }) => {
+const RefreshButton = ({ onClick }) => (
+  <button
+    className="mat-refresh-btn"
+    onClick={onClick}
+    title="Обновить"
+  >
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="23 4 23 10 17 10" />
+      <polyline points="1 20 1 14 7 14" />
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+    </svg>
+    Обновить
+  </button>
+);
+
+const KmdInfoCard = ({ kmd, loading, onRefresh }) => {
   const fmt = (n) => (n != null ? Number(n).toLocaleString('ru-RU') : '—');
   const fmtWeight = (n) => (n != null ? Number(n).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' кг' : '—');
 
@@ -55,11 +79,15 @@ const KmdInfoCard = ({ kmd, loading }) => {
           <span className="kmd-info-value">{fmtWeight(kmd?.shipped_marks_weight)}</span>
         </div>
       </div>
+
+      <div className="kmd-info-refresh">
+        <RefreshButton onClick={onRefresh} />
+      </div>
     </div>
   );
 };
 
-const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onSortChange, sortBy, orderBy, lastElementRef, onFilterChange, activeFilters = {} }) => {
+const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onSortChange, sortBy, orderBy, lastElementRef, onFilterChange, activeFilters = {}, canChanges }) => {
   const [kmdInfo, setKmdInfo] = useState(null);
   const [kmdInfoLoading, setKmdInfoLoading] = useState(false);
 
@@ -67,7 +95,6 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
   const [localFilters, setLocalFilters] = useState(activeFilters);
   const [openDropdowns, setOpenDropdowns] = useState({ names: false, cooperations: false, mountingParts: false });
 
-  // Добавляем локальное состояние для марок
   const [localMarks, setLocalMarks] = useState([]);
 
   const toggleDropdown = (name) => setOpenDropdowns((prev) => ({ ...prev, [name]: !prev[name] }));
@@ -82,7 +109,19 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
     setLocalMarks((prevMarks) => prevMarks.map((m) => (m.id === markId ? { ...m, ...updates } : m)));
   };
 
-  // Синхронизируем marks из пропсов с локальным состоянием
+  const refreshKmdInfo = async () => {
+    if (!selectedKmd) return;
+    setKmdInfoLoading(true);
+    try {
+      const data = await getKmdInfo(selectedKmd.uuid);
+      setKmdInfo(data);
+    } catch (e) {
+      console.error('Ошибка загрузки информации о КМД', e);
+    } finally {
+      setKmdInfoLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (marks) {
       setLocalMarks(marks);
@@ -94,20 +133,8 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
       setKmdInfo(null);
       return;
     }
-
-    const loadKmdInfo = async () => {
-      setKmdInfoLoading(true);
-      try {
-        const data = await getKmdInfo(selectedKmd.uuid);
-        setKmdInfo(data);
-      } catch (e) {
-        console.error('Ошибка загрузки информации о КМД', e);
-      } finally {
-        setKmdInfoLoading(false);
-      }
-    };
-
-    loadKmdInfo();
+    refreshKmdInfo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedKmd?.uuid]);
 
   useEffect(() => {
@@ -135,6 +162,7 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
     };
 
     loadFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedKmd?.uuid]);
 
   useEffect(() => {
@@ -165,6 +193,7 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
           <KmdInfoCard
             kmd={kmdInfo}
             loading={kmdInfoLoading}
+            onRefresh={refreshKmdInfo}
           />
 
           <div className="marks-controls">
@@ -225,6 +254,7 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
         selectedKmd={selectedKmd}
         marksLoading={marksLoading}
         lastElementRef={lastElementRef}
+        canChanges={canChanges}
       />
     </>
   );

@@ -56,17 +56,7 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
     return 'Новый';
   };
 
-  const calculateMarkStatus = (mark) => {
-    const { quantity, assembled_quantity, shipped_quantity } = mark;
-    if (shipped_quantity >= quantity) return 'Отгружен';
-    if (assembled_quantity >= quantity) return 'Собран';
-    const details = markDetails[mark.id]?.details;
-    if (details && details.length > 0) {
-      const allDone = details.every((d) => d.remaining_quantity === 0);
-      if (allDone) return 'Готов';
-    }
-    return 'Новый';
-  };
+  const getMarkStatus = (mark) => mark.status || 'Новый';
 
   const handleOpenExecution = (detail, mark) => {
     setExecutionModal({ isOpen: true, detail, markInfo: mark });
@@ -80,25 +70,29 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
     try {
       const newRemaining = executionModal.detail.remaining_quantity - formData.quantity;
       const totalQuantity = executionModal.detail.details_quantity;
-      const newStatus = calculateDetailStatus(newRemaining, totalQuantity);
+      const newDetailStatus = calculateDetailStatus(newRemaining, totalQuantity);
 
-      await createWorkExecution({
+      const response = await createWorkExecution({
         work_id: 0,
         rel_markadel_id: executionModal.detail.id,
         user_uuid: formData.workerUuid,
         quantity: formData.quantity,
         completion_date: formData.completionDate,
         remaining_quantity: newRemaining,
-        detail_status: newStatus,
+        detail_status: newDetailStatus,
         message: `Выполнено ${formData.quantity} шт.`,
       });
 
+      const markId = executionModal.markInfo?.id;
       setMarkDetails((prev) => {
-        const markId = executionModal.markInfo?.id;
         const details = prev[markId]?.details || [];
-        const updatedDetails = details.map((d) => (d.id === executionModal.detail.id ? { ...d, remaining_quantity: newRemaining, status: newStatus } : d));
+        const updatedDetails = details.map((d) => (d.id === executionModal.detail.id ? { ...d, remaining_quantity: newRemaining, status: newDetailStatus } : d));
         return { ...prev, [markId]: { ...prev[markId], details: updatedDetails } };
       });
+
+      if (response?.mark_status) {
+        onMarkUpdate(markId, { status: response.mark_status });
+      }
 
       toast.success('Выполнение записано');
       setExecutionModal({ isOpen: false, detail: null, markInfo: null });
@@ -119,7 +113,7 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
 
       onMarkUpdate(markId, {
         assembled_quantity: response.assembled_quantity,
-        mark_status: response.mark_status,
+        status: response.mark_status,
       });
 
       toast.success(response.message || 'Сборка записана');
@@ -141,8 +135,8 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
       });
 
       onMarkUpdate(mark.id, {
-        shipped_quantity: response.shipped_quantity || mark.shipped_quantity + formData.quantity,
-        mark_status: response.mark_status,
+        shipped_quantity: response.shipped_quantity ?? mark.shipped_quantity + formData.quantity,
+        status: response.mark_status,
       });
 
       toast.success(response.message || 'Отгрузка записана');
@@ -173,7 +167,7 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
       {marks.length > 0 && (
         <div className="marks-list">
           {marks.map((mark, index) => {
-            const markStatus = calculateMarkStatus(mark);
+            const markStatus = getMarkStatus(mark);
             const isExpanded = expandedMarkId.includes(mark.id);
 
             return (
@@ -330,7 +324,7 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
                                       {detail.status || calculateDetailStatus(detail.remaining_quantity, detail.details_quantity)}
                                     </span>
                                   </td>
-                                  <td>{detail.detail?.operation || '-'}</td>
+                                  <td>{detail.operation || '-'}</td>
                                   {canChanges && (
                                     <td>
                                       <button

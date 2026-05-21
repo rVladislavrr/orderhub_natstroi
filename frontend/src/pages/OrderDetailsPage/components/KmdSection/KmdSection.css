@@ -520,3 +520,42 @@
   align-items: center;
   padding-left: 20px;
 }
+
+.kmd-info-refresh {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  margin-left: auto;
+}
+
+.mat-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background-color: white;
+  color: #475569;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.mat-refresh-btn:hover {
+  border-color: #004e8d;
+  color: #004e8d;
+  background-color: #f0f7ff;
+}
+
+.mat-refresh-btn:active {
+  transform: scale(0.97);
+}
+
+.mat-refresh-btn svg {
+  flex-shrink: 0;
+}
