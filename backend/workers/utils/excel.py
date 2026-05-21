@@ -163,7 +163,6 @@ async def create_get_details(kmd_keys, df_details_full, values_list, session):
                 length=row['Длина заготовки, мм'],
                 weight=row['Вес 1 заг., кг'],
                 steel_grade=row['Марка стали'],
-                operation=row['Операции'],
                 kmd_uuid=kmd_keys[row['Номер КМД']],
             ))
     log.info(f'Будет добавлено {len(details_create)} деталей')
@@ -273,7 +272,7 @@ def error_in_det(df, request_id):
 
         df_details_full = df[['№ позиции', 'Прокат', 'Типоразмер проката', 'Ширина, мм',
                               'Длина заготовки, мм', 'Вес 1 заг., кг', 'Марка стали',
-                              'Операции', 'Номер КМД']].drop_duplicates()
+                             'Номер КМД']].drop_duplicates()
 
         df_details_num = df[['№ позиции', 'Номер КМД']].drop_duplicates()
 
@@ -311,11 +310,12 @@ async def create_rel(values_list, session, df, kmd_keys, marks, details):
 
     relMarkaDel = []
     relMarkaDel_df = df[
-        ['Марка', '№ позиции', 'Кол-во позиций на однотипные марки', 'Номер КМД', 'Номер очереди']].drop_duplicates()
+        ['Марка', '№ позиции', 'Кол-во позиций на однотипные марки', 'Номер КМД', 'Номер очереди', 'Операции']].drop_duplicates()
     for _, row in relMarkaDel_df.iterrows():
         if (str(kmd_keys[row['Номер КМД']]), row['№ позиции'], row['Марка']) not in set_kmd_rel:
             relMarkaDel.append(
                 RelMarkaDel(
+                    operation=row['Операции'],
                     que_num=row['Номер очереди'],
                     details_quantity=row['Кол-во позиций на однотипные марки'],
                     remaining_quantity=row['Кол-во позиций на однотипные марки'],

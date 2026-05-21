@@ -19,6 +19,7 @@ class WorkCreateResponse(BaseModel):
     remaining_quantity: int
     detail_status: str
     message: str
+    mark_status: str
 
 
 class WorkUserInfo(BaseModel):

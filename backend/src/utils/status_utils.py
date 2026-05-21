@@ -1,3 +1,5 @@
+
+
 from collections import defaultdict
 
 from sqlalchemy import select
@@ -9,18 +11,7 @@ from src.models.orders import Orders, OrderStatus
 from src.models.rel_markadet import RelMarkaDel, DetailsStatus
 
 
-# ---------------------------------------------------------------------------
-# Уровень 1: Деталь → все марки KMD (один батч вместо N запросов)
-# ---------------------------------------------------------------------------
-
 async def recalculate_marks_for_kmd(kmd_uuid, session: AsyncSession) -> None:
-    """
-    Пересчитывает статусы ВСЕХ марок одного KMD за 2 запроса:
-      1. SELECT все марки KMD
-      2. SELECT все rel_markadel этого KMD
-    Вместо N*(SELECT marks + SELECT rel_markadel) в цикле.
-    """
-    # 1 запрос — все марки KMD
     marks: list[Marks] = (await session.execute(
         select(Marks).where(Marks.kmd_uuid == kmd_uuid)
     )).scalars().all()
@@ -36,17 +27,14 @@ async def recalculate_marks_for_kmd(kmd_uuid, session: AsyncSession) -> None:
     if not marks_to_update:
         return
 
-    # 2 запрос — все rel_markadel этого KMD одним SELECT
     entries: list[RelMarkaDel] = (await session.execute(
         select(RelMarkaDel).where(RelMarkaDel.kmd_uuid == kmd_uuid)
     )).scalars().all()
 
-    # Группируем записи по mark_id
     by_mark: dict[int, list[RelMarkaDel]] = defaultdict(list)
     for e in entries:
         by_mark[e.marks_id].append(e)
 
-    # Пересчитываем статус каждой марки без доп. запросов
     for mark_id, mark in marks_to_update.items():
         mark_entries = by_mark.get(mark_id, [])
         active = [e for e in mark_entries if e.status != DetailsStatus.CANCELLED]
@@ -61,19 +49,19 @@ async def recalculate_marks_for_kmd(kmd_uuid, session: AsyncSession) -> None:
         )
 
         if all_completed:
-            mark.status = MarkStatus.COMPLETED
+            mark.status = MarkStatus.COMPLETED   # Готов — все детали сделаны
         elif any_started:
-            mark.status = MarkStatus.IN_PROGRESS
+            mark.status = MarkStatus.IN_PROGRESS  # В работе
         else:
             mark.status = MarkStatus.NEW
 
 
-# ---------------------------------------------------------------------------
-# Уровень 2: Марки → KMD (один запрос)
-# ---------------------------------------------------------------------------
 
 async def recalculate_kmd_status(kmd_uuid, session: AsyncSession) -> None:
-    """1 запрос — все марки KMD, пересчёт статуса KMD."""
+    """
+    KMD COMPLETED когда все марки ASSEMBLED или SHIPPED.
+    KMD IN_PROGRESS когда хотя бы одна марка не NEW.
+    """
     marks: list[Marks] = (await session.execute(
         select(Marks).where(Marks.kmd_uuid == kmd_uuid)
     )).scalars().all()
@@ -82,8 +70,9 @@ async def recalculate_kmd_status(kmd_uuid, session: AsyncSession) -> None:
     if kmd is None or not marks:
         return
 
+    # KMD завершён только когда все марки собраны или отгружены
     all_done = all(
-        m.status in (MarkStatus.COMPLETED, MarkStatus.ASSEMBLED, MarkStatus.SHIPPED)
+        m.status in (MarkStatus.ASSEMBLED, MarkStatus.SHIPPED)
         for m in marks
     )
     any_started = any(m.status != MarkStatus.NEW for m in marks)
@@ -96,12 +85,7 @@ async def recalculate_kmd_status(kmd_uuid, session: AsyncSession) -> None:
         kmd.status = KMDStatus.NEW
 
 
-# ---------------------------------------------------------------------------
-# Уровень 3: KMD → Заказ (один запрос)
-# ---------------------------------------------------------------------------
-
 async def recalculate_order_status(order_uuid, session: AsyncSession) -> None:
-    """1 запрос — все KMD заказа, пересчёт статуса заказа."""
     kmd_list: list[KMD] = (await session.execute(
         select(KMD).where(KMD.order_uuid == order_uuid)
     )).scalars().all()
@@ -126,21 +110,8 @@ async def recalculate_order_status(order_uuid, session: AsyncSession) -> None:
         order.status = OrderStatus.IN_PROGRESS
 
 
-# ---------------------------------------------------------------------------
-# Точки входа
-# ---------------------------------------------------------------------------
-
 async def cascade_status_update(kmd_uuid, session: AsyncSession) -> None:
-    """
-    Вызывать после изменения статуса детали.
-    Итого: 5 запросов на весь каскад вместо N+1.
-      1. SELECT marks WHERE kmd_uuid        (recalculate_marks_for_kmd)
-      2. SELECT rel_markadel WHERE kmd_uuid  (recalculate_marks_for_kmd)
-      3. SELECT marks WHERE kmd_uuid        (recalculate_kmd_status)
-      4. GET kmd                            (recalculate_kmd_status)
-      5. SELECT kmd WHERE order_uuid        (recalculate_order_status)
-      6. GET order                          (recalculate_order_status)
-    """
+    """Вызывать после изменения статуса детали (RelMarkaDel)."""
     await recalculate_marks_for_kmd(kmd_uuid, session)
     await recalculate_kmd_status(kmd_uuid, session)
 
@@ -150,10 +121,7 @@ async def cascade_status_update(kmd_uuid, session: AsyncSession) -> None:
 
 
 async def cascade_from_mark(mark_id: int, session: AsyncSession) -> None:
-    """
-    Вызывать после сборки или отгрузки марки.
-    Пересчитывает KMD → Заказ (марки не трогаем — их статус уже выставлен).
-    """
+    """Вызывать после сборки или отгрузки марки."""
     mark = await session.get(Marks, mark_id)
     if mark is None:
         return

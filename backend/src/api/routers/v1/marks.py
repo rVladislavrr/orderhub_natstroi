@@ -28,7 +28,7 @@ log = logging.getLogger('Марк роутер')
     '/{marks_id}/details',
     summary='Получение всех деталей в марке'
 )
-async def get_marks(
+async def get_details(
         request: Request,
         marks_id: int,
         limit: int = Query(5, gt=0),
@@ -122,12 +122,12 @@ async def assemble_mark(
 
     mark.assembled_quantity += body.quantity
 
-    # Статус марки
+
     if mark.assembled_quantity >= mark.quantity:
         mark.status = MarkStatus.ASSEMBLED
         message = "Марка полностью собрана"
     else:
-        mark.status = MarkStatus.ASSEMBLED  # частично — тоже ASSEMBLED
+        mark.status = MarkStatus.COMPLETED  # частичная сборка — остаёмся Готов
         message = f"Частичная сборка. Собрано {mark.assembled_quantity} из {mark.quantity}"
 
     await cascade_from_mark(mark_id, session)
@@ -164,17 +164,15 @@ async def ship_mark(
     if mark is None:
         raise HTTPException(status_code=404, detail="Марка не найдена")
 
-    if mark.status not in (MarkStatus.ASSEMBLED, MarkStatus.SHIPPED):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Нельзя отгружать марку со статусом «{mark.status}». "
-                   f"Марка должна быть собрана.",
-        )
-
-    # Можно отгружать только собранные (не отгруженные ещё)
+    # Проверяем по числам — есть ли что отгружать
     available_to_ship = mark.assembled_quantity - mark.shipped_quantity
     if available_to_ship <= 0:
-        raise HTTPException(status_code=400, detail="Нет собранных марок для отгрузки")
+        raise HTTPException(
+            status_code=400,
+            detail="Нет собранных марок для отгрузки. "
+                   f"Собрано: {mark.assembled_quantity}, "
+                   f"уже отгружено: {mark.shipped_quantity}"
+        )
 
     if body.quantity > available_to_ship:
         raise HTTPException(

@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 
 from src.config import settings
 from src.db.connection import get_async_session
-from src.models import Orders, KMD
+from src.models import Orders, KMD, Marks
 from src.models.rel_userdel import RelUserDel
 from src.models.rel_markadet import RelMarkaDel, DetailsStatus
 from src.models.users import Users
@@ -121,11 +121,14 @@ async def record_work(
         rel.status = DetailsStatus.IN_PROGRESS
         message = f"Частичное выполнение. Осталось: {rel.remaining_quantity}"
 
+    await session.flush()
+
     # 6. Каскадно обновляем статус KMD → Orders
     await cascade_status_update(rel.kmd_uuid, session)
 
     await session.commit()
     await session.refresh(work_entry)
+    mark = await session.get(Marks, rel.marks_id)
 
     return WorkCreateResponse(
         work_id=work_entry.id,
@@ -136,6 +139,7 @@ async def record_work(
         remaining_quantity=rel.remaining_quantity,
         detail_status=rel.status,
         message=message,
+        mark_status=mark.status if mark else "—",
     )
 
 

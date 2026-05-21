@@ -238,7 +238,8 @@ class UsersManager(BaseManager[UsersCreate, UsersRead, UsersUpdate, Users]):
             database_logger.debug(f'{request_id}| Пользователи валидированы под схему')
         else:
             database_logger.debug(f'{request_id}| Пользователи не получены, подзапрос на количество всех пользователи')
-            total_items = await session.scalar(select(func.count()).select_from(Users))
+            total_items = await session.scalar(select(func.count()).select_from(Users)
+                                               .where(Users.username != settings.ADMIN_USERNAME))
             users = []
 
         database_logger.debug(f'{request_id}| Пользователи выполнены')

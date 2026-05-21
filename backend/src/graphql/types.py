@@ -21,6 +21,7 @@ class DetailType:
     mark_quantity: int
     mark_weight: float
     mounting_part: str
+    cooperation: str
 
     # Поля из RelMarkaDel
     quantity: int
@@ -70,6 +71,8 @@ class HierarchyFilters:
     que_num: Optional[List[str]] = None
     length: Optional[List[int]] = None
     mounting_part: Optional[List[str]] = None
+    operation: Optional[List[str]] = None
+    cooperation: Optional[List[str]] = None
 
 
     def to_str(self) -> str:

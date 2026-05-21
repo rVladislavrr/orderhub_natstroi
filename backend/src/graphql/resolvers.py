@@ -12,6 +12,7 @@ from src.service.redis_conn import redis_client, load_inf, get_inf
 
 log = logging.getLogger('Graphql')
 
+
 @strawberry.type
 class Query:
 
@@ -30,6 +31,7 @@ class Query:
         log.info('Получены объекты')
         return ResponseGraph(nodes=nodes, statistics=stat)
 
+
 async def get_items(
         info: Info,
         kmd_uuids: List[str],
@@ -37,7 +39,7 @@ async def get_items(
 ):
     db = info.context['db']
 
-    cache_key = f"hierarchy:{','.join(sorted(kmd_uuids))}:{filters.to_str()if filters else ''}"
+    cache_key = f"hierarchy:{','.join(sorted(kmd_uuids))}:{filters.to_str() if filters else ''}"
     log.info('Получение данных из хранилища')
 
     s = time.time()
@@ -49,6 +51,8 @@ async def get_items(
 
     if filters and filters.que_num:
         rel_conditions.append(RelMarkaDel.que_num.in_(filters.que_num))
+    if filters and filters.operation:
+        rel_conditions.append(RelMarkaDel.operation.in_(filters.operation))
 
     filtered_rel_cte = (
         select(RelMarkaDel)
@@ -66,8 +70,9 @@ async def get_items(
             Details.length,
             Details.weight,
             Details.steel_grade,
-            Details.operation,
+            filtered_rel_cte.c.operation,
             Marks.mounting_part,
+            Marks.cooperation,
             Marks.id.label('mark_id'),
             Marks.title.label('mark_title'),
             Marks.name.label('mark_name'),
@@ -100,6 +105,7 @@ async def get_items(
             'weight': float(row.weight),
             'steel_grade': row.steel_grade,
             'operation': row.operation,
+            'cooperation': row.cooperation,
             'mark_title': row.mark_title,
             'mark_name': row.mark_name,
             'mark_quantity': row.mark_quantity,
@@ -118,11 +124,11 @@ async def get_items(
 
     return items
 
+
 async def dynamic_hierarchy_table(
         items,
         group_by: List[GroupByLevel],
 ) -> List[GroupNode]:
-
     sorted_levels = sorted(group_by, key=lambda x: x.order)
     return build_hierarchy_fast(items, sorted_levels)
 
@@ -140,6 +146,8 @@ def apply_filters(query, filters: HierarchyFilters):
         query = query.where(Details.num_detail.in_(filters.num_detail))
     if filters.length:
         query = query.where(Details.length.in_(filters.length))
+    if filters.cooperation:
+        query = query.where(Marks.cooperation.in_(filters.cooperation))
     if filters.mounting_part:
         mounting_part_values = []
         has_null = False
@@ -247,6 +255,7 @@ def build_level(groups: dict, levels: List[GroupByLevel], depth: int) -> List[Gr
 
     return nodes
 
+
 def compute_statistics(items: List[dict], group_by: List[GroupByLevel]) -> Statistics:
     by_detail = any(g.field == 'num_detail' for g in group_by)
 
@@ -271,12 +280,14 @@ def compute_statistics(items: List[dict], group_by: List[GroupByLevel]) -> Stati
         total_quantity=total_quantity,
     )
 
+
 def create_detail_type(item: dict) -> DetailType:
     return DetailType(
         id=item.get('id', 0),
         num_detail=item.get('num_detail', ''),
         type=item.get('type', ''),
         size=item.get('size', ''),
+        cooperation=item.get('cooperation', ''),
         width=item.get('width'),
         length=item.get('length', 0),
         weight=item.get('weight', 0),

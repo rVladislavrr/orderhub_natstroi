@@ -80,24 +80,10 @@ async def update_permissions(request: Request,
 
 @router.get('/{user_id}',
             summary='Получение конкретного пользователя',
-            response_model=UsersRead,
             description='Получение конкретного пользователя по его UUID, доступно только с правами по ролю выше 1')
 async def get_user(request: Request,
                    user_id: UUID4,
-                   session: AsyncSession = Depends(get_async_session)) -> UsersRead:
-    """
-       Получение конкретного пользователя
-
-      Получение конкретного пользователя по его UUID, доступно только с правами по ролю выше 1
-
-       **Ожидаемые поля в Path (User_id - UUID):**
-       **Возвращает:**
-       - `200 OK` – пользователь успешно получен в виде схемы UserREAD
-       - `401 UNAUTHORIZED` – неверный токен, или отсутствует какая либо авторизация
-       - `403 Forbidden` – недостаточно прав для выполнения операции
-       - `404 Not Found` – указанный user не существует
-       - `422 UNPROCESSABLE_CONTENT` – некорректные данные (например, неверный формат uuid пользхователя)
-    """
+                   session: AsyncSession = Depends(get_async_session)):
     request_id = request.state.request_id
     log.info(f'{request_id}| Получение пользователя {user_id}')
     user = await usersManager.get(user_id, session, request_id)

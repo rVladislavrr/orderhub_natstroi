@@ -59,6 +59,11 @@ class RelMarkaDel(Base):
         comment='Статус детали',
     )
 
+    operation: Mapped[str] = mapped_column(
+        nullable=True,
+        comment='Операции наверное могут быт пустыми'
+    )
+
     kmd_uuid: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('kmd.uuid'))
 
     kmd: Mapped['KMD'] = relationship(
