@@ -1,10 +1,20 @@
 import { useAuth } from '../context/AuthContext';
 
 const usePermission = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   const hasPermission = (key, level = 1) => {
-    return (user?.permissions?.[key] ?? 0) >= level;
+    if (loading) {
+      console.log('Права ещё загружаются...');
+      return false;
+    }
+
+    const userLevel = user?.permissions?.[key] ?? 0;
+    const result = userLevel >= level;
+
+    console.log(`hasPermission('${key}', ${level}) => ${result} (userLevel: ${userLevel})`);
+
+    return result;
   };
 
   return hasPermission;

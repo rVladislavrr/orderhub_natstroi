@@ -9,7 +9,9 @@ import useInfiniteMarks from '../../hooks/useInfiniteMarks';
 import usePermission from '../../hooks/usePermissions';
 import OrderHeader from './components/OrderHeader/OrderHeader';
 import FileUploadSection from './components/FileUploadSection/FileUploadSection';
+import EditOrderModal from '../OrdersPage/CreateOrderModal/EditOrderModal';
 import { getOrderInfo } from '../../api/ordersApi';
+import { useAuth } from '../../context/AuthContext';
 
 const OrderDetailsPage = () => {
   const navigate = useNavigate();
@@ -17,6 +19,7 @@ const OrderDetailsPage = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedKmd, setSelectedKmd] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const [sortBy, setSortBy] = useState('title');
   const [orderBy, setOrderBy] = useState('asc');
@@ -26,24 +29,37 @@ const OrderDetailsPage = () => {
   const { marks, loading: marksLoading, lastElementRef, resetMarks } = useInfiniteMarks(selectedKmd?.uuid, sortBy, orderBy, activeFilters);
 
   const hasPermission = usePermission();
+  const { loading: authLoading } = useAuth();
   const canChanges = hasPermission('order', 2);
+  const canPrintQueue = hasPermission('queues', 2);
+
+  const fetchOrderInfo = async () => {
+    try {
+      setLoading(true);
+      const uuid = location.state?.uuid;
+      const data = await getOrderInfo(uuid);
+      setOrder(data);
+    } catch (error) {
+      console.error('Ошибка загрузки деталей заказа:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchOrderInfo = async () => {
-      try {
-        setLoading(true);
-        const uuid = location.state?.uuid;
-        const data = await getOrderInfo(uuid);
-        console.log('Данные:', data);
-        setOrder(data);
-      } catch (error) {
-        console.error('Ошибка загрузки деталей заказа:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchOrderInfo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state?.uuid]);
+
+  const refreshOrder = async () => {
+    try {
+      const uuid = location.state?.uuid;
+      const data = await getOrderInfo(uuid);
+      setOrder(data);
+    } catch (error) {
+      console.error('Ошибка обновления заказа:', error);
+    }
+  };
 
   const handleFileUploaded = (uploadedFile) => {
     setOrder((prevOrder) => ({
@@ -88,21 +104,44 @@ const OrderDetailsPage = () => {
     }));
   };
 
+  const handleOrderUpdated = (updatedOrder) => {
+    setShowEditModal(false);
+    setOrder((prev) => ({ ...prev, ...updatedOrder }));
+
+    if (updatedOrder.internal_num_orders !== order.internal_num_orders) {
+      navigate(`/orders/${updatedOrder.internal_num_orders}`, {
+        replace: true,
+        state: { uuid: location.state?.uuid },
+      });
+    }
+  };
+
+  if (authLoading) {
+    return <LoadingDots />;
+  }
+
   if (loading) return <LoadingDots />;
   if (!order) return <div>Заказ не найден</div>;
 
   return (
     <div className="order-details-page">
-      <OrderHeader order={order} />
+      <OrderHeader
+        order={order}
+        canChanges={canChanges}
+        onEditClick={() => setShowEditModal(true)}
+        onRefresh={refreshOrder}
+      />
 
-      <div className="print-queue-button-container">
-        <button
-          className="print-queue-button"
-          onClick={handleOpenPrintQueue}
-        >
-          Составить очередь на печать
-        </button>
-      </div>
+      {canPrintQueue && (
+        <div className="print-queue-button-container">
+          <button
+            className="print-queue-button"
+            onClick={handleOpenPrintQueue}
+          >
+            Составить очередь на печать
+          </button>
+        </div>
+      )}
 
       {canChanges && (
         <FileUploadSection
@@ -127,6 +166,14 @@ const OrderDetailsPage = () => {
         activeFilters={activeFilters}
         canChanges={canChanges}
       />
+
+      {showEditModal && (
+        <EditOrderModal
+          order={order}
+          onClose={() => setShowEditModal(false)}
+          onUpdated={handleOrderUpdated}
+        />
+      )}
     </div>
   );
 };

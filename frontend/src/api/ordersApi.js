@@ -202,3 +202,5 @@ export const shipMark = async (markId, data) => {
   const response = await api.post(`/marks/${markId}/ship`, data);
   return response.data;
 };
+
+export const updateOrder = (uuid, data) => api.put(`/orders/${uuid}`, data).then((res) => res.data);

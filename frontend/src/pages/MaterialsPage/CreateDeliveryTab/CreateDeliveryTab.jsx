@@ -220,7 +220,6 @@ export default function CreateDeliveryTab({ onCreated }) {
             />
           ))}
 
-          {/* Кнопка теперь здесь — после всех позиций */}
           <div className="cd-add-item-footer">
             <button
               className="cd-add-item-btn"
@@ -435,22 +434,17 @@ function ItemCard({ item, idx, onTypeChange, onSizeChange, onSteelChange, onWeig
                           value={inputVal}
                           onChange={(e) => {
                             let val = e.target.value;
-                            // Пустое значение
                             if (val === '') {
                               onAllocWeightChange(o.kmd_uuid, '');
                               return;
                             }
-                            // Преобразуем в число
                             let num = parseFloat(val);
-                            // Если не число или отрицательное - игнорируем
                             if (isNaN(num) || num < 0) {
                               return;
                             }
-                            // Передаём значение
                             onAllocWeightChange(o.kmd_uuid, String(num));
                           }}
                           onKeyDown={(e) => {
-                            // Блокируем клавишу минус и букву e (экспоненциальная запись)
                             if (e.key === '-' || e.key === 'Minus' || e.key === 'e' || e.key === 'E') {
                               e.preventDefault();
                             }
