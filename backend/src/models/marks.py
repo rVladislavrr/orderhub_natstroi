@@ -1,7 +1,17 @@
 from sqlalchemy import ForeignKey, UUID, UniqueConstraint, DECIMAL, Numeric
+from sqlalchemy.dialects.postgresql import ENUM as sqlEnum
+from enum import Enum
 
 from src.models import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+
+class MarkStatus(str, Enum):
+    NEW = "Новый"
+    IN_PROGRESS = "В работе"
+    COMPLETED = "Готов"          # все детали сделаны, можно собирать
+    ASSEMBLED = "Собран"         # марка собрана (часть или все)
+    SHIPPED = "Отгружен"         # марка отгружена
 
 
 class Marks(Base):
@@ -49,6 +59,27 @@ class Marks(Base):
         comment='Признак монтажной детали'
     )
 
+    status: Mapped[str] = mapped_column(
+        sqlEnum(MarkStatus, name='markstatus', create_type=False),
+        nullable=False,
+        default=MarkStatus.NEW,
+        server_default='NEW',
+        comment='Статус марки',
+    )
+
+    # Сколько марок уже собрано
+    assembled_quantity: Mapped[int] = mapped_column(
+        nullable=False,
+        server_default='0',
+        comment='Количество собранных марок'
+    )
+
+    # Сколько марок отгружено
+    shipped_quantity: Mapped[int] = mapped_column(
+        nullable=False,
+        server_default='0',
+        comment='Количество отгруженных марок'
+    )
 
     kmd_uuid: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('kmd.uuid'))
 
@@ -66,4 +97,14 @@ class Marks(Base):
         secondary='rel_markadel',
         viewonly=True,
         lazy="select"
+    )
+
+    assembly_entries: Mapped[list['RelUserMark']] = relationship(
+        back_populates='mark',
+        lazy="select",
+    )
+
+    shipment_entries: Mapped[list['MarkShipment']] = relationship(
+        back_populates='mark',
+        lazy="select",
     )

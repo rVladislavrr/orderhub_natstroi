@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from src.shemas.details import RelMarkaBase
 from src.shemas.marks import MarksRead
 from src.shemas.users import UsersReadPag, Workers
+from src.shemas.work import WorkLogItem
 
 
 class Filters(BaseModel):
@@ -45,3 +46,6 @@ class PaginatedResponseWorkers(BaseModel):
     workers: list[Workers]
     pagination: PaginationInfo
 
+class PaginatedWorkLog(BaseModel):
+    items: list[WorkLogItem]
+    pagination: PaginationInfo

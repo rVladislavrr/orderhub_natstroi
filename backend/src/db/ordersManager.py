@@ -56,18 +56,21 @@ class OrdersManager(BaseManager[OrdersCreate, OrdersRead, OrdersUpdate, Orders])
             # Теперь просто суммируем уже посчитанные поля из каждой КМД
             entity.total_marks_count = sum(kmd.count_marks for kmd in entity.kmd_list)
             entity.total_marks_count_uq = sum(kmd.count_marks_uq for kmd in entity.kmd_list)
-            entity.total_marks_weight = sum(kmd.marks_weight for kmd in entity.kmd_list)
+            entity.total_marks_weight = round(sum(float(kmd.marks_weight) for kmd in entity.kmd_list), 2)
 
-            entity.total_marks_weight = round(entity.total_marks_weight, 2)
+            # Отгруженные — новые поля
+            entity.total_shipped_count = sum(kmd.shipped_marks_count for kmd in entity.kmd_list)
+            entity.total_shipped_weight = round(sum(float(kmd.shipped_marks_weight) for kmd in entity.kmd_list), 2)
 
-            # Формируем список КМД для ответа (если нужно)
             entity.list_kmd = [
                 {
                     'uuid': kmd.uuid,
                     'num_kmd': kmd.num_kmd,
                     'count_marks': kmd.count_marks,
                     'count_marks_uq': kmd.count_marks_uq,
-                    'marks_weight': kmd.marks_weight
+                    'marks_weight': kmd.marks_weight,
+                    'shipped_marks_count': kmd.shipped_marks_count,
+                    'shipped_marks_weight': kmd.shipped_marks_weight,
                 }
                 for kmd in entity.kmd_list
             ]

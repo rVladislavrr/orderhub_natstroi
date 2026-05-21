@@ -4,7 +4,6 @@ from math import ceil
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field, UUID4
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -16,62 +15,11 @@ from src.models.rel_userdel import RelUserDel
 from src.models.rel_markadet import RelMarkaDel, DetailsStatus
 from src.models.users import Users
 from src.shemas.users import Workers
+from src.shemas.work import WorkCreateResponse, WorkCreateRequest, WorkLogItem, WorkUserInfo, WorkRelInfo
 from src.utils.status_utils import cascade_status_update
-from src.shemas.pagination import PaginationInfo, PaginatedResponseWorkers
+from src.shemas.pagination import PaginationInfo, PaginatedResponseWorkers, PaginatedWorkLog
 
 router = APIRouter(tags=["work"])
-
-
-class WorkCreateRequest(BaseModel):
-    user_uuid: UUID4 = Field(..., description="UUID пользователя")
-    rel_markadel_id: int = Field(..., description="ID связи марка-деталь")
-    quantity: int = Field(..., ge=1, description="Количество выполненных деталей")
-    completion_date: date = Field(default_factory=date.today, description="Дата выполнения")
-
-
-class WorkCreateResponse(BaseModel):
-    work_id: int
-    rel_markadel_id: int
-    user_uuid: UUID4
-    quantity: int
-    completion_date: date
-    remaining_quantity: int
-    detail_status: str
-    message: str
-
-
-class WorkUserInfo(BaseModel):
-    uuid: UUID4
-    name: str
-    lastname: str
-
-
-class WorkRelInfo(BaseModel):
-    id: int
-    mark_title: str  # Б2-30
-    mark_name: str  # Балка
-    detail_num: str  # номер детали
-    detail_type: str  # Лист / Труба / ...
-    detail_size: str  # типоразмер
-    kmd_num: str  # номер КМД
-    internal_num_orders: int  # номер заказа
-    order_name: str  # название заказа
-
-
-
-class WorkLogItem(BaseModel):
-    id: int
-    user: WorkUserInfo
-    relation: WorkRelInfo
-    quantity: int
-    completion_date: date
-
-
-class PaginatedWorkLog(BaseModel):
-    items: list[WorkLogItem]
-    pagination: PaginationInfo
-
-
 
 @router.get(
     "/workers",
@@ -124,8 +72,8 @@ async def get_workers(
     summary="Записать выполнение деталей пользователем",
 )
 async def record_work(
-    body: WorkCreateRequest,
-    session: AsyncSession = Depends(get_async_session),
+        body: WorkCreateRequest,
+        session: AsyncSession = Depends(get_async_session),
 ):
     # 1. Проверяем пользователя
     user = await session.get(Users, body.user_uuid)
@@ -133,7 +81,7 @@ async def record_work(
         raise HTTPException(status_code=404, detail="Пользователь не найден")
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Пользователь неактивен")
- 
+
     # 2. Проверяем связь марка-деталь
     rel = await session.get(RelMarkaDel, body.rel_markadel_id)
     if rel is None:
@@ -142,7 +90,7 @@ async def record_work(
         raise HTTPException(status_code=400, detail="Связь уже завершена")
     if rel.status == DetailsStatus.CANCELLED:
         raise HTTPException(status_code=400, detail="Связь отменена, работа невозможна")
- 
+
     # 3. Проверяем количество
     if body.quantity > rel.remaining_quantity:
         raise HTTPException(
@@ -152,7 +100,7 @@ async def record_work(
                 f"остаток ({rel.remaining_quantity})"
             ),
         )
- 
+
     # 4. Создаём запись о работе
     work_entry = RelUserDel(
         user_uuid=body.user_uuid,
@@ -161,10 +109,10 @@ async def record_work(
         completion_date=body.completion_date,
     )
     session.add(work_entry)
- 
+
     # 5. Обновляем остаток и статус связи
     rel.remaining_quantity -= body.quantity
- 
+
     if rel.remaining_quantity <= 0:
         rel.remaining_quantity = 0
         rel.status = DetailsStatus.COMPLETED
@@ -172,13 +120,13 @@ async def record_work(
     else:
         rel.status = DetailsStatus.IN_PROGRESS
         message = f"Частичное выполнение. Осталось: {rel.remaining_quantity}"
- 
+
     # 6. Каскадно обновляем статус KMD → Orders
     await cascade_status_update(rel.kmd_uuid, session)
- 
+
     await session.commit()
     await session.refresh(work_entry)
- 
+
     return WorkCreateResponse(
         work_id=work_entry.id,
         rel_markadel_id=rel.id,

@@ -3,7 +3,7 @@ import sys
 from src.broker import broker
 from src.models.files import FileStatus
 from workers.utils.excel import get_info, get_file_in_df, error_in_det, create_get_details, create_kmd, \
-    create_get_marks, create_rel, update_kmd
+    create_get_marks, create_rel, update_kmd, update_kmd_shipped
 
 if sys.argv[0] == 'worker':
     from workers.connect import async_session_factory
@@ -73,3 +73,20 @@ async def read_tech_file(file_uuid, request_id):
     log.info(f'{request_id}| Обработка файла завершена')
 
     return
+
+
+@broker.task
+async def update_kmd_shipped_task(kmd_uuids: list, request_id: str):
+    """
+    Фоновая задача. Вызывать после отгрузки марки:
+
+        mark = await session.get(Marks, mark_id)
+        await update_kmd_shipped_task.kiq(
+            kmd_uuids=[str(mark.kmd_uuid)],
+            request_id=request_id,
+        )
+    """
+    log.info(f'{request_id}| [task] Обновление отгруженных агрегатов КМД: {kmd_uuids}')
+    async with async_session_factory() as session:
+        await update_kmd_shipped(kmd_uuids, session, request_id)
+    log.info(f'{request_id}| [task] Готово')
