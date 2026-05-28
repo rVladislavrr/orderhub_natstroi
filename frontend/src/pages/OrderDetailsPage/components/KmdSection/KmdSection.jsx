@@ -1,3 +1,4 @@
+// KmdSection.js
 import { useEffect, useState } from 'react';
 import { getMarksFilters, getKmdInfo } from '../../../../api/ordersApi';
 import './KmdSection.css';
@@ -91,17 +92,71 @@ const KmdInfoCard = ({ kmd, loading, onRefresh }) => {
 const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onSortChange, sortBy, orderBy, lastElementRef, onFilterChange, activeFilters = {}, canChanges }) => {
   const [kmdInfo, setKmdInfo] = useState(null);
   const [kmdInfoLoading, setKmdInfoLoading] = useState(false);
+  const [filtersLoading, setFiltersLoading] = useState(false);
 
-  const [filters, setFilters] = useState({ names: [], cooperations: [], mountingParts: [] });
+  const [filters, setFilters] = useState({ names: [], cooperations: [], mountingParts: [], filterStatus: [] });
   const [localFilters, setLocalFilters] = useState(activeFilters);
-  const [openDropdowns, setOpenDropdowns] = useState({ names: false, cooperations: false, mountingParts: false });
+  const [openDropdowns, setOpenDropdowns] = useState({ names: false, cooperations: false, mountingParts: false, filterStatus: false });
 
   const [localMarks, setLocalMarks] = useState([]);
 
-  const toggleDropdown = (name) => setOpenDropdowns((prev) => ({ ...prev, [name]: !prev[name] }));
-  const closeAllDropdowns = () => setOpenDropdowns({ names: false, cooperations: false, mountingParts: false });
+  const toggleDropdown = (name) => {
+    if (filtersLoading) return;
+
+    setOpenDropdowns((prev) => ({
+      ...prev,
+      [name]: !prev[name],
+    }));
+  };
+  const closeAllDropdowns = () => setOpenDropdowns({ names: false, cooperations: false, mountingParts: false, filterStatus: false });
 
   const [activeTab, setActiveTab] = useState('marks');
+
+  const normalize = (data, key) => {
+    if (!data || !Array.isArray(data)) return [];
+    return data.map((item) => ({ value: item[key], count: item.count }));
+  };
+
+  const loadAllFilters = async () => {
+    if (!selectedKmd) return;
+
+    setFiltersLoading(true);
+    try {
+      const [names, coops, parts, status] = await Promise.all([getMarksFilters(selectedKmd.uuid, 'name'), getMarksFilters(selectedKmd.uuid, 'cooperation'), getMarksFilters(selectedKmd.uuid, 'mounting_part'), getMarksFilters(selectedKmd.uuid, 'status')]);
+
+      const nextFilters = {
+        names: normalize(names, 'name'),
+        cooperations: normalize(coops, 'name'),
+        mountingParts: normalize(parts, 'name'),
+        filterStatus: normalize(status, 'name'),
+      };
+
+      setFilters(nextFilters);
+
+      setLocalFilters((prev) => {
+        const validNames = nextFilters.names.map((x) => x.value);
+        const validCoops = nextFilters.cooperations.map((x) => x.value);
+        const validParts = nextFilters.mountingParts.map((x) => x.value);
+        const validStatuses = nextFilters.filterStatus.map((x) => x.value);
+
+        const cleanedFilters = {
+          ...prev,
+          filter_name: (prev.filter_name || []).filter((v) => validNames.includes(v)),
+          filter_cooperation: (prev.filter_cooperation || []).filter((v) => validCoops.includes(v)),
+          filter_mounting_part: (prev.filter_mounting_part || []).filter((v) => validParts.includes(v)),
+          filter_status: (prev.filter_status || []).filter((v) => validStatuses.includes(v)),
+        };
+
+        onFilterChange(cleanedFilters);
+
+        return cleanedFilters;
+      });
+    } catch (e) {
+      console.error('Ошибка загрузки фильтров', e);
+    } finally {
+      setFiltersLoading(false);
+    }
+  };
 
   const handleApplyFilters = () => {
     onFilterChange(localFilters);
@@ -125,6 +180,10 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
     }
   };
 
+  const handleDataUpdate = async () => {
+    await Promise.all([loadAllFilters(), refreshKmdInfo()]);
+  };
+
   useEffect(() => {
     if (marks) {
       setLocalMarks(marks);
@@ -142,29 +201,7 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
 
   useEffect(() => {
     if (!selectedKmd) return;
-
-    const loadFilters = async () => {
-      try {
-        const names = await getMarksFilters(selectedKmd.uuid, 'name');
-        const coops = await getMarksFilters(selectedKmd.uuid, 'cooperation');
-        const parts = await getMarksFilters(selectedKmd.uuid, 'mounting_part');
-
-        const normalize = (data, key) => {
-          if (!data || !Array.isArray(data)) return [];
-          return data.map((item) => ({ value: item[key], count: item.count }));
-        };
-
-        setFilters({
-          names: normalize(names, 'name'),
-          cooperations: normalize(coops, 'name'),
-          mountingParts: normalize(parts, 'name'),
-        });
-      } catch (e) {
-        console.error('Ошибка загрузки фильтров', e);
-      }
-    };
-
-    loadFilters();
+    loadAllFilters();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedKmd?.uuid]);
 
@@ -218,7 +255,6 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
             </button>
           </div>
 
-          {/* Контролы только для вкладки марок */}
           {activeTab === 'marks' && (
             <div className="marks-controls">
               <div className="controls-left">
@@ -232,46 +268,91 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
               <div className="controls-divider" />
 
               <div className="controls-right">
-                <div className="filters-inline">
-                  <span className="filters-label">Фильтровать по: </span>
+                <div className="filters-block">
+                  <div className="filters-header">
+                    <span className="filters-label">Фильтровать по:</span>
 
-                  <DropdownFilter
-                    title="Название"
-                    items={filters.names}
-                    selected={localFilters.filter_name || []}
-                    onChange={(values) => setLocalFilters({ ...localFilters, filter_name: values })}
-                    isOpen={openDropdowns.names}
-                    onToggle={() => toggleDropdown('names')}
-                  />
-                  <DropdownFilter
-                    title="Кооперация"
-                    items={filters.cooperations}
-                    selected={localFilters.filter_cooperation || []}
-                    onChange={(values) => setLocalFilters({ ...localFilters, filter_cooperation: values })}
-                    isOpen={openDropdowns.cooperations}
-                    onToggle={() => toggleDropdown('cooperations')}
-                  />
-                  <DropdownFilter
-                    title="Монтажная деталь"
-                    items={filters.mountingParts}
-                    selected={localFilters.filter_mounting_part || []}
-                    onChange={(values) => setLocalFilters({ ...localFilters, filter_mounting_part: values })}
-                    isOpen={openDropdowns.mountingParts}
-                    onToggle={() => toggleDropdown('mountingParts')}
-                  />
+                    {filtersLoading && (
+                      <span className="filters-loading-indicator">
+                        <span className="loading-spinner-small"></span>
+                      </span>
+                    )}
+                  </div>
 
-                  <button
-                    className="apply-filters-btn"
-                    onClick={handleApplyFilters}
-                  >
-                    Применить
-                  </button>
+                  <div className="filters-row">
+                    <DropdownFilter
+                      title="Название"
+                      items={filters.names}
+                      selected={localFilters.filter_name || []}
+                      onChange={(values) =>
+                        setLocalFilters({
+                          ...localFilters,
+                          filter_name: values,
+                        })
+                      }
+                      isOpen={openDropdowns.names}
+                      onToggle={() => toggleDropdown('names')}
+                      disabled={filtersLoading}
+                    />
+
+                    <DropdownFilter
+                      title="Кооперация"
+                      items={filters.cooperations}
+                      selected={localFilters.filter_cooperation || []}
+                      onChange={(values) =>
+                        setLocalFilters({
+                          ...localFilters,
+                          filter_cooperation: values,
+                        })
+                      }
+                      isOpen={openDropdowns.cooperations}
+                      onToggle={() => toggleDropdown('cooperations')}
+                      disabled={filtersLoading}
+                    />
+
+                    <DropdownFilter
+                      title="Монтажная деталь"
+                      items={filters.mountingParts}
+                      selected={localFilters.filter_mounting_part || []}
+                      onChange={(values) =>
+                        setLocalFilters({
+                          ...localFilters,
+                          filter_mounting_part: values,
+                        })
+                      }
+                      isOpen={openDropdowns.mountingParts}
+                      onToggle={() => toggleDropdown('mountingParts')}
+                      disabled={filtersLoading}
+                    />
+
+                    <DropdownFilter
+                      title="Статусы"
+                      items={filters.filterStatus}
+                      selected={localFilters.filter_status || []}
+                      onChange={(values) =>
+                        setLocalFilters({
+                          ...localFilters,
+                          filter_status: values,
+                        })
+                      }
+                      isOpen={openDropdowns.filterStatus}
+                      onToggle={() => toggleDropdown('filterStatus')}
+                      disabled={filtersLoading}
+                    />
+
+                    <button
+                      className="apply-filters-btn"
+                      onClick={handleApplyFilters}
+                      disabled={filtersLoading}
+                    >
+                      Применить
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Вкладка деталей */}
           {activeTab === 'details' && (
             <DetailSearch
               selectedKmd={selectedKmd}
@@ -289,6 +370,7 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
           marksLoading={marksLoading}
           lastElementRef={lastElementRef}
           canChanges={canChanges}
+          onStatusUpdate={handleDataUpdate}
         />
       )}
     </>

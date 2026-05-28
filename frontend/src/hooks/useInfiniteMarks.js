@@ -37,6 +37,7 @@ const useInfiniteMarks = (kmdUuid, sortBy = 'title', orderBy = 'asc', filters = 
         filter_name: filters.filter_name || null,
         filter_cooperation: filters.filter_cooperation || null,
         filter_mounting_part: filters.filter_mounting_part || null,
+        filter_status: filters.filter_status || null,
       });
 
       setMarks((prev) => [...prev, ...(data.marks || [])]);

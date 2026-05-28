@@ -1,3 +1,4 @@
+// MarksList.js
 import React, { useState } from 'react';
 import { getMarkDetails } from '../../../../api/ordersApi';
 import { getStatusColor } from '../../../../utils/statusUtils';
@@ -13,7 +14,7 @@ import ShipModal from '../ShipModal';
 
 const DETAILS_PAGE_LIMIT = 10;
 
-const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElementRef, canChanges }) => {
+const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElementRef, canChanges, onStatusUpdate }) => {
   const [expandedMarkId, setExpandedMarkId] = useState([]);
   const [markDetails, setMarkDetails] = useState({});
   const [detailsLoading, setDetailsLoading] = useState({});
@@ -123,6 +124,10 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
 
       toast.success('Выполнение записано');
       setExecutionModal({ isOpen: false, detail: null, markInfo: null });
+
+      if (onStatusUpdate) {
+        await onStatusUpdate();
+      }
     } catch (error) {
       toast.error('Ошибка при сохранении');
     }
@@ -145,6 +150,10 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
 
       toast.success(response.message || 'Сборка записана');
       setAssembleModal({ isOpen: false, mark: null });
+
+      if (onStatusUpdate) {
+        await onStatusUpdate();
+      }
     } catch (error) {
       console.error('Ошибка при сборке:', error);
       throw error;
@@ -168,6 +177,10 @@ const MarksList = ({ marks, onMarkUpdate, selectedKmd, marksLoading, lastElement
 
       toast.success(response.message || 'Отгрузка записана');
       setShipModal({ isOpen: false, mark: null });
+
+      if (onStatusUpdate) {
+        await onStatusUpdate();
+      }
     } catch (error) {
       console.error('Ошибка при отгрузке:', error);
       throw error;

@@ -97,19 +97,36 @@
   margin: 10px 0;
 }
 
-/* Контролы сортировки и фильтров */
 .marks-controls {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   margin: 20px 0;
-  min-height: 72px;
   padding: 12px 16px;
   background-color: #f8fafc;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   gap: 12px;
   overflow: visible;
+}
+
+.controls-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.controls-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .controls-left {
@@ -121,11 +138,33 @@
   align-self: stretch;
   background-color: #e2e8f0;
   flex-shrink: 0;
+  margin: 4px 0;
 }
 
 .controls-right {
-  flex: 1;
-  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+}
+
+.filters-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.filters-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 20px;
+}
+
+.filters-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .sort-controls {
@@ -166,7 +205,7 @@
 .filters-inline {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -180,6 +219,49 @@
 
 .dropdown-filter {
   position: relative;
+}
+
+.filters-loading-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  padding: 0 8px;
+  font-size: 12px;
+  color: #004e8d;
+  background-color: #e0f2fe;
+  border-radius: 12px;
+  white-space: nowrap;
+  animation: fadeIn 0.2s ease-in;
+}
+
+.loading-spinner-small {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #004e8d;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .dropdown-toggle {
@@ -214,6 +296,12 @@
 .dropdown-toggle--active {
   border-color: #004e8d;
   color: #004e8d;
+}
+
+.dropdown-toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #f1f5f9;
 }
 
 .dropdown-arrow {

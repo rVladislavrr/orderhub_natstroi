@@ -125,7 +125,7 @@ export const getOrderInfo = async (uuid) => {
 
 export const getOrderMarks = async (kmdUuid, params = {}) => {
   try {
-    const { page = 1, limit = 5, sort_by = 'title', order_by = 'asc', filter_name = null, filter_cooperation = null, filter_mounting_part = null } = params;
+    const { page = 1, limit = 5, sort_by = 'title', order_by = 'asc', filter_name = null, filter_cooperation = null, filter_mounting_part = null, filter_status = null } = params;
 
     const queryParams = {
       page,
@@ -142,6 +142,9 @@ export const getOrderMarks = async (kmdUuid, params = {}) => {
     }
     if (filter_mounting_part && filter_mounting_part.length > 0) {
       queryParams.filter_mounting_part = filter_mounting_part;
+    }
+    if (filter_status && filter_status.length > 0) {
+      queryParams.filter_status = filter_status;
     }
 
     const response = await api.get(`/kmd/${kmdUuid}/marks`, {

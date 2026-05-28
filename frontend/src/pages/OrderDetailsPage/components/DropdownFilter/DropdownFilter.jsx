@@ -1,30 +1,20 @@
 import { useEffect, useRef } from 'react';
 
-const DropdownFilter = ({ title, items, selected, onChange, isOpen, onToggle }) => {
+const DropdownFilter = ({ title, items, selected, onChange, isOpen, onToggle, disabled }) => {
   const ref = useRef(null);
 
   useEffect(() => {
     if (!isOpen) return;
-
     const handleClickOutside = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) {
-        onToggle();
-      }
+      if (ref.current && !ref.current.contains(e.target)) onToggle();
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onToggle]);
 
   const handleCheckboxChange = (value) => {
-    if (selected.includes(value)) {
-      onChange(selected.filter((item) => item !== value));
-    } else {
-      onChange([...selected, value]);
-    }
+    onChange(selected.includes(value) ? selected.filter((i) => i !== value) : [...selected, value]);
   };
-
-  const selectedCount = selected.length;
 
   return (
     <div
@@ -33,14 +23,14 @@ const DropdownFilter = ({ title, items, selected, onChange, isOpen, onToggle }) 
     >
       <button
         type="button"
-        className={`dropdown-toggle ${selectedCount > 0 ? 'dropdown-toggle--active' : ''}`}
+        className={`dropdown-toggle ${selected.length > 0 ? 'dropdown-toggle--active' : ''}`}
         onClick={onToggle}
+        disabled={disabled}
       >
         {title}
-        {selectedCount > 0 && <span className="dropdown-count">{selectedCount}</span>}
+        {selected.length > 0 && <span className="dropdown-count">{selected.length}</span>}
         <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}></span>
       </button>
-
       {isOpen && (
         <div className="dropdown-menu">
           {items.map((item) => (
