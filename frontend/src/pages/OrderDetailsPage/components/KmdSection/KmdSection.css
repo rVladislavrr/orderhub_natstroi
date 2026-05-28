@@ -559,3 +559,34 @@
 .mat-refresh-btn svg {
   flex-shrink: 0;
 }
+
+.kmd-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 16px 0 0;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0;
+}
+
+.kmd-tab {
+  padding: 10px 24px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.kmd-tab:hover {
+  color: #004e8d;
+}
+
+.kmd-tab--active {
+  color: #004e8d;
+  border-bottom-color: #004e8d;
+}

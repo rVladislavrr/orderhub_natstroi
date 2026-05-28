@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import LoadingDots from '../../components/LoadingDots/LoadingDots';
-import { getActiveMaterials, getMaterialsByOrder } from '../../api/materialsApi';
+import { getActiveMaterials, getMaterialsByOrder, getAllActiveMaterials } from '../../api/materialsApi';
 import { getOrders } from '../../api/ordersApi';
 import { getStatusColor } from '../../utils/statusUtils';
 import StockTab from './StockTab/StockTab';
@@ -8,7 +8,7 @@ import CreateDeliveryTab from './CreateDeliveryTab/CreateDeliveryTab';
 import './MaterialPage.css';
 import TrucksTab from './TrucksTab/TrucksTab';
 
-const PAGE_LIMIT = 100;
+const PAGE_LIMIT = 30;
 
 const TABS = [
   { id: 'active', label: 'Все активные заказы' },
@@ -21,6 +21,7 @@ const TABS = [
 export default function MaterialsPage() {
   const [mode, setMode] = useState('active');
   const [trucksRefreshKey, setTrucksRefreshKey] = useState(0);
+  const [hideZeroDeficit, setHideZeroDeficit] = useState(false);
 
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderDropdownOpen, setOrderDropdownOpen] = useState(false);
@@ -45,11 +46,15 @@ export default function MaterialsPage() {
   const [orderLoadingMore, setOrderLoadingMore] = useState(false);
   const [orderError, setOrderError] = useState(null);
 
+  const [printRows, setPrintRows] = useState(null);
+  const [printLoading, setPrintLoading] = useState(false);
+
   const bottomRef = useRef(null);
   const observerRef = useRef(null);
   const dropdownRef = useRef(null);
   const modeRef = useRef(mode);
   const selectedOrderRef = useRef(selectedOrder);
+  const hideZeroDeficitRef = useRef(hideZeroDeficit);
 
   useEffect(() => {
     modeRef.current = mode;
@@ -57,6 +62,9 @@ export default function MaterialsPage() {
   useEffect(() => {
     selectedOrderRef.current = selectedOrder;
   }, [selectedOrder]);
+  useEffect(() => {
+    hideZeroDeficitRef.current = hideZeroDeficit;
+  }, [hideZeroDeficit]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -81,12 +89,12 @@ export default function MaterialsPage() {
     }
   }, []);
 
-  const fetchActive = useCallback(async (page = 1, append = false) => {
+  const fetchActive = useCallback(async (page = 1, append = false, hide_zero_deficit = false) => {
     if (page === 1) setActiveLoading(true);
     else setActiveLoadingMore(true);
     setActiveError(null);
     try {
-      const data = await getActiveMaterials(page, PAGE_LIMIT);
+      const data = await getActiveMaterials(page, PAGE_LIMIT, hide_zero_deficit);
       setActiveData(data);
       setActiveRows((prev) => (append ? [...prev, ...data.rows] : data.rows));
       setActivePage(page);
@@ -99,13 +107,13 @@ export default function MaterialsPage() {
     }
   }, []);
 
-  const fetchOrder = useCallback(async (uuid, page = 1, append = false) => {
+  const fetchOrder = useCallback(async (uuid, page = 1, append = false, hide_zero_deficit = false) => {
     if (!uuid) return;
     if (page === 1) setOrderLoading(true);
     else setOrderLoadingMore(true);
     setOrderError(null);
     try {
-      const data = await getMaterialsByOrder(uuid, page, PAGE_LIMIT);
+      const data = await getMaterialsByOrder(uuid, page, PAGE_LIMIT, hide_zero_deficit);
       setOrderData(data);
       setOrderRows((prev) => (append ? [...prev, ...data.rows] : data.rows));
       setOrderPage(page);
@@ -119,13 +127,11 @@ export default function MaterialsPage() {
   }, []);
 
   useEffect(() => {
-    if (mode === 'active') fetchActive(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (mode === 'active') fetchActive(1, false, hideZeroDeficit);
   }, [mode]);
 
   useEffect(() => {
     if (orderDropdownOpen && !ordersHasLoaded) fetchOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderDropdownOpen]);
 
   useEffect(() => {
@@ -133,10 +139,19 @@ export default function MaterialsPage() {
       setOrderRows([]);
       setOrderData(null);
       setOrderPage(1);
-      fetchOrder(selectedOrder.uuid, 1, false);
+      fetchOrder(selectedOrder.uuid, 1, false, hideZeroDeficit);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedOrder]);
+
+  useEffect(() => {
+    if (mode === 'active') {
+      setActivePage(1);
+      fetchActive(1, false, hideZeroDeficit);
+    } else if (mode === 'order' && selectedOrder) {
+      setOrderPage(1);
+      fetchOrder(selectedOrder.uuid, 1, false, hideZeroDeficit);
+    }
+  }, [hideZeroDeficit]);
 
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect();
@@ -150,8 +165,9 @@ export default function MaterialsPage() {
         if (entries[0].isIntersecting) {
           const currentMode = modeRef.current;
           const currentOrder = selectedOrderRef.current;
-          if (currentMode === 'active') fetchActive(activePage + 1, true);
-          else if (currentOrder?.uuid) fetchOrder(currentOrder.uuid, orderPage + 1, true);
+          const currentHideDeficit = hideZeroDeficitRef.current;
+          if (currentMode === 'active') fetchActive(activePage + 1, true, currentHideDeficit);
+          else if (currentOrder?.uuid) fetchOrder(currentOrder.uuid, orderPage + 1, true, currentHideDeficit);
         }
       },
       { threshold: 0.1 },
@@ -160,12 +176,11 @@ export default function MaterialsPage() {
     return () => {
       if (observerRef.current) observerRef.current.disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, activeHasMore, activeLoadingMore, activePage, orderHasMore, orderLoadingMore, orderPage, selectedOrder]);
 
   const handleModeSwitch = (m) => {
     setMode(m);
-    if (m === 'active' && !activeData) fetchActive(1);
+    if (m === 'active' && !activeData) fetchActive(1, false, hideZeroDeficit);
   };
 
   const handleToggleDropdown = () => setOrderDropdownOpen((v) => !v);
@@ -178,14 +193,40 @@ export default function MaterialsPage() {
   const refreshActive = () => {
     setActiveRows([]);
     setActivePage(1);
-    fetchActive(1, false);
+    fetchActive(1, false, hideZeroDeficit);
   };
 
   const refreshOrder = () => {
     if (selectedOrder) {
       setOrderRows([]);
       setOrderPage(1);
-      fetchOrder(selectedOrder.uuid, 1, false);
+      fetchOrder(selectedOrder.uuid, 1, false, hideZeroDeficit);
+    }
+  };
+
+  const handlePrint = async (title) => {
+    if (mode === 'active') {
+      setPrintLoading(true);
+      try {
+        const data = await getAllActiveMaterials(hideZeroDeficit);
+        setPrintRows(data.rows ?? []);
+        const originalTitle = document.title;
+        document.title = title;
+        setTimeout(() => {
+          window.print();
+          document.title = originalTitle;
+          setPrintRows(null);
+          setPrintLoading(false);
+        }, 150);
+      } catch (e) {
+        setPrintLoading(false);
+        console.error('Ошибка загрузки для печати', e);
+      }
+    } else {
+      const originalTitle = document.title;
+      document.title = title;
+      window.print();
+      document.title = originalTitle;
     }
   };
 
@@ -203,6 +244,9 @@ export default function MaterialsPage() {
   const currentLoadingMore = mode === 'active' ? activeLoadingMore : orderLoadingMore;
   const currentError = mode === 'active' ? activeError : orderError;
   const currentHasMore = mode === 'active' ? activeHasMore : orderHasMore;
+
+  const printColumns = mode === 'active' && printRows ? activeColumns : currentColumns;
+  const printData = mode === 'active' ? activeData : orderData;
 
   const formatNum = (n) => (n == null ? '—' : n === 0 ? <span className="mat-zero">—</span> : n.toLocaleString('ru-RU'));
 
@@ -230,6 +274,18 @@ export default function MaterialsPage() {
       </svg>
       Обновить
     </button>
+  );
+
+  const Toggle = ({ checked, onChange }) => (
+    <label className="mat-toggle-label">
+      <span className="mat-toggle-text">Скрыть нулевой дефицит</span>
+      <div
+        className={`mat-toggle ${checked ? 'mat-toggle--on' : ''}`}
+        onClick={() => onChange(!checked)}
+      >
+        <div className="mat-toggle-thumb" />
+      </div>
+    </label>
   );
 
   const OrderDropdown = (
@@ -312,6 +368,72 @@ export default function MaterialsPage() {
         </div>
       )}
     </div>
+  );
+
+  const TableContent = ({ rows, columns, data }) => (
+    <table className="mat-table">
+      <thead>
+        <tr>
+          <th className="mat-th mat-th-sticky mat-th-profile">Профиль</th>
+          <th className="mat-th mat-th-sticky mat-th-grade">Марка стали</th>
+          {columns.map((col) => (
+            <th
+              key={col}
+              className="mat-th mat-th-col"
+            >
+              {col}
+            </th>
+          ))}
+          <th className="mat-th mat-th-total">Итого</th>
+          <th className="mat-th mat-th-deficit">Дефицит</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row, i) => (
+          <tr
+            key={`${row.profile}-${row.steel_grade}-${i}`}
+            className="mat-row"
+          >
+            <td className="mat-td mat-td-sticky mat-td-profile">{row.profile}</td>
+            <td className="mat-td mat-td-sticky mat-td-grade">
+              <span className="mat-grade-badge">{row.steel_grade}</span>
+            </td>
+            {columns.map((col) => (
+              <td
+                key={col}
+                className="mat-td mat-td-num"
+              >
+                {formatNum(row.totals?.[col])}
+              </td>
+            ))}
+            <td className="mat-td mat-td-num mat-td-grand">{row.grand_total?.toLocaleString('ru-RU')}</td>
+            <td className={`mat-td mat-td-num ${(row.deficit ?? 0) > 0 ? 'mat-td-deficit' : 'mat-td-deficit--zero'}`}>{row.deficit != null ? row.deficit.toLocaleString('ru-RU') : '—'}</td>
+          </tr>
+        ))}
+      </tbody>
+      {data?.column_totals && (
+        <tfoot>
+          <tr className="mat-foot-row">
+            <td
+              className="mat-td mat-td-sticky mat-foot-label"
+              colSpan={2}
+            >
+              Итого
+            </td>
+            {columns.map((col) => (
+              <td
+                key={col}
+                className="mat-td mat-td-num mat-foot-num"
+              >
+                {data.column_totals[col]?.toLocaleString('ru-RU') ?? '—'}
+              </td>
+            ))}
+            <td className="mat-td mat-td-num mat-foot-num mat-td-grand">{data.grand_total?.toLocaleString('ru-RU')}</td>
+            <td className="mat-td mat-td-num mat-foot-num mat-td-grand">{data.total_deficit?.toLocaleString('ru-RU') ?? '—'}</td>
+          </tr>
+        </tfoot>
+      )}
+    </table>
   );
 
   return (
@@ -397,74 +519,49 @@ export default function MaterialsPage() {
             </div>
           )}
 
-          {currentLoading && <LoadingDots />}
+          {currentLoading && !currentRows.length && <LoadingDots />}
 
-          {!currentLoading && currentRows.length > 0 && (
-            <div className="mat-table-wrapper">
-              <table className="mat-table">
-                <thead>
-                  <tr>
-                    <th className="mat-th mat-th-sticky mat-th-profile">Профиль</th>
-                    <th className="mat-th mat-th-sticky mat-th-grade">Марка стали</th>
-                    {currentColumns.map((col) => (
-                      <th
-                        key={col}
-                        className="mat-th mat-th-col"
-                      >
-                        {col}
-                      </th>
-                    ))}
-                    <th className="mat-th mat-th-total">Итого</th>
-                    <th className="mat-th mat-th-deficit">Дефицит</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentRows.map((row, i) => (
-                    <tr
-                      key={`${row.profile}-${row.steel_grade}-${i}`}
-                      className="mat-row"
-                    >
-                      <td className="mat-td mat-td-sticky mat-td-profile">{row.profile}</td>
-                      <td className="mat-td mat-td-sticky mat-td-grade">
-                        <span className="mat-grade-badge">{row.steel_grade}</span>
-                      </td>
-                      {currentColumns.map((col) => (
-                        <td
-                          key={col}
-                          className="mat-td mat-td-num"
-                        >
-                          {formatNum(row.totals?.[col])}
-                        </td>
-                      ))}
-                      <td className="mat-td mat-td-num mat-td-grand">{row.grand_total?.toLocaleString('ru-RU')}</td>
-                      <td className={`mat-td mat-td-num ${(row.deficit ?? 0) > 0 ? 'mat-td-deficit' : 'mat-td-deficit--zero'}`}>{row.deficit != null ? row.deficit.toLocaleString('ru-RU') : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                {currentData?.column_totals && (
-                  <tfoot>
-                    <tr className="mat-foot-row">
-                      <td
-                        className="mat-td mat-td-sticky mat-foot-label"
-                        colSpan={2}
-                      >
-                        Итого
-                      </td>
-                      {currentColumns.map((col) => (
-                        <td
-                          key={col}
-                          className="mat-td mat-td-num mat-foot-num"
-                        >
-                          {currentData.column_totals[col]?.toLocaleString('ru-RU') ?? '—'}
-                        </td>
-                      ))}
-                      <td className="mat-td mat-td-num mat-foot-num mat-td-grand">{currentData.grand_total?.toLocaleString('ru-RU')}</td>
-                      <td className="mat-td mat-td-num mat-foot-num mat-td-grand">{currentData.total_deficit?.toLocaleString('ru-RU') ?? '—'}</td>
-                    </tr>
-                  </tfoot>
-                )}
-              </table>
-            </div>
+          {currentRows.length > 0 && (
+            <>
+              <div className="mat-print-bar">
+                <Toggle
+                  checked={hideZeroDeficit}
+                  onChange={setHideZeroDeficit}
+                />
+                <button
+                  className="print-button"
+                  onClick={() => handlePrint(mode === 'order' ? `Заказ №${selectedOrder?.internal_num_orders}` : 'Все активные заказы')}
+                  disabled={printLoading}
+                >
+                  {printLoading ? 'Загрузка...' : 'Распечатать'}
+                </button>
+              </div>
+
+              <div className={`mat-print-container${mode === 'active' && printRows ? ' mat-screen-only' : ''}`}>
+                <div
+                  className="mat-table-wrapper"
+                  style={{ opacity: currentLoading ? 0.5 : 1, transition: 'opacity 0.2s' }}
+                >
+                  <TableContent
+                    rows={currentRows}
+                    columns={currentColumns}
+                    data={currentData}
+                  />
+                </div>
+              </div>
+
+              {mode === 'active' && printRows && (
+                <div className="mat-print-container mat-print-only">
+                  <div className="mat-table-wrapper">
+                    <TableContent
+                      rows={printRows}
+                      columns={printColumns}
+                      data={printData}
+                    />
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {!currentLoading && !currentError && currentRows.length === 0 && mode === 'order' && selectedOrder && <div className="mat-empty">Нет данных по этому заказу</div>}

@@ -5,6 +5,7 @@ import DropdownFilter from '../DropdownFilter/DropdownFilter';
 import SortControls from '../SortControls/SortControls';
 import MarksList from '../MarksList/MarksList';
 import { getStatusColor } from '../../../../utils/statusUtils';
+import DetailSearch from '../DetailSearch/DetailSearch';
 
 const RefreshButton = ({ onClick }) => (
   <button
@@ -100,6 +101,8 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
   const toggleDropdown = (name) => setOpenDropdowns((prev) => ({ ...prev, [name]: !prev[name] }));
   const closeAllDropdowns = () => setOpenDropdowns({ names: false, cooperations: false, mountingParts: false });
 
+  const [activeTab, setActiveTab] = useState('marks');
+
   const handleApplyFilters = () => {
     onFilterChange(localFilters);
     closeAllDropdowns();
@@ -169,6 +172,10 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
     setLocalFilters(activeFilters || {});
   }, [selectedKmd, activeFilters]);
 
+  useEffect(() => {
+    setActiveTab('marks');
+  }, [selectedKmd?.uuid]);
+
   if (!kmdList || kmdList.length === 0) return null;
 
   return (
@@ -196,66 +203,94 @@ const KmdSection = ({ kmdList, selectedKmd, marks, marksLoading, onKmdClick, onS
             onRefresh={refreshKmdInfo}
           />
 
-          <div className="marks-controls">
-            <div className="controls-left">
-              <SortControls
-                sortBy={sortBy}
-                orderBy={orderBy}
-                onSortChange={onSortChange}
-              />
-            </div>
+          <div className="kmd-tabs">
+            <button
+              className={`kmd-tab ${activeTab === 'marks' ? 'kmd-tab--active' : ''}`}
+              onClick={() => setActiveTab('marks')}
+            >
+              Марки
+            </button>
+            <button
+              className={`kmd-tab ${activeTab === 'details' ? 'kmd-tab--active' : ''}`}
+              onClick={() => setActiveTab('details')}
+            >
+              Детали
+            </button>
+          </div>
 
-            <div className="controls-divider" />
-
-            <div className="controls-right">
-              <div className="filters-inline">
-                <span className="filters-label">Фильтровать по: </span>
-
-                <DropdownFilter
-                  title="Название"
-                  items={filters.names}
-                  selected={localFilters.filter_name || []}
-                  onChange={(values) => setLocalFilters({ ...localFilters, filter_name: values })}
-                  isOpen={openDropdowns.names}
-                  onToggle={() => toggleDropdown('names')}
+          {/* Контролы только для вкладки марок */}
+          {activeTab === 'marks' && (
+            <div className="marks-controls">
+              <div className="controls-left">
+                <SortControls
+                  sortBy={sortBy}
+                  orderBy={orderBy}
+                  onSortChange={onSortChange}
                 />
-                <DropdownFilter
-                  title="Кооперация"
-                  items={filters.cooperations}
-                  selected={localFilters.filter_cooperation || []}
-                  onChange={(values) => setLocalFilters({ ...localFilters, filter_cooperation: values })}
-                  isOpen={openDropdowns.cooperations}
-                  onToggle={() => toggleDropdown('cooperations')}
-                />
-                <DropdownFilter
-                  title="Монтажная деталь"
-                  items={filters.mountingParts}
-                  selected={localFilters.filter_mounting_part || []}
-                  onChange={(values) => setLocalFilters({ ...localFilters, filter_mounting_part: values })}
-                  isOpen={openDropdowns.mountingParts}
-                  onToggle={() => toggleDropdown('mountingParts')}
-                />
+              </div>
 
-                <button
-                  className="apply-filters-btn"
-                  onClick={handleApplyFilters}
-                >
-                  Применить
-                </button>
+              <div className="controls-divider" />
+
+              <div className="controls-right">
+                <div className="filters-inline">
+                  <span className="filters-label">Фильтровать по: </span>
+
+                  <DropdownFilter
+                    title="Название"
+                    items={filters.names}
+                    selected={localFilters.filter_name || []}
+                    onChange={(values) => setLocalFilters({ ...localFilters, filter_name: values })}
+                    isOpen={openDropdowns.names}
+                    onToggle={() => toggleDropdown('names')}
+                  />
+                  <DropdownFilter
+                    title="Кооперация"
+                    items={filters.cooperations}
+                    selected={localFilters.filter_cooperation || []}
+                    onChange={(values) => setLocalFilters({ ...localFilters, filter_cooperation: values })}
+                    isOpen={openDropdowns.cooperations}
+                    onToggle={() => toggleDropdown('cooperations')}
+                  />
+                  <DropdownFilter
+                    title="Монтажная деталь"
+                    items={filters.mountingParts}
+                    selected={localFilters.filter_mounting_part || []}
+                    onChange={(values) => setLocalFilters({ ...localFilters, filter_mounting_part: values })}
+                    isOpen={openDropdowns.mountingParts}
+                    onToggle={() => toggleDropdown('mountingParts')}
+                  />
+
+                  <button
+                    className="apply-filters-btn"
+                    onClick={handleApplyFilters}
+                  >
+                    Применить
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Вкладка деталей */}
+          {activeTab === 'details' && (
+            <DetailSearch
+              selectedKmd={selectedKmd}
+              canChanges={canChanges}
+            />
+          )}
         </>
       )}
 
-      <MarksList
-        marks={localMarks}
-        onMarkUpdate={handleMarkUpdate}
-        selectedKmd={selectedKmd}
-        marksLoading={marksLoading}
-        lastElementRef={lastElementRef}
-        canChanges={canChanges}
-      />
+      {activeTab === 'marks' && (
+        <MarksList
+          marks={localMarks}
+          onMarkUpdate={handleMarkUpdate}
+          selectedKmd={selectedKmd}
+          marksLoading={marksLoading}
+          lastElementRef={lastElementRef}
+          canChanges={canChanges}
+        />
+      )}
     </>
   );
 };

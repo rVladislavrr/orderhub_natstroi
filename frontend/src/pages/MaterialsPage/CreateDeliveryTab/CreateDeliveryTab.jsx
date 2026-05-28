@@ -60,50 +60,51 @@ export default function CreateDeliveryTab({ onCreated }) {
   const [form, setForm] = useState(draft?.form ?? defaultForm());
   const [items, setItems] = useState(draft?.items?.length ? restoreItems(draft.items) : [emptyItem()]);
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState(null);
+
+  const [nameError, setNameError] = useState('');
+  const [itemsError, setItemsError] = useState('');
+  const [invalidItemIds, setInvalidItemIds] = useState([]);
 
   useEffect(() => {
     saveDraft(form, items);
   }, [form, items]);
 
-  const setField = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+  const setField = (k, v) => {
+    setForm((p) => ({ ...p, [k]: v }));
+    if (k === 'name' && v.trim()) setNameError('');
+  };
 
   const addItem = () => setItems((p) => [...p, emptyItem()]);
-  const removeItem = (id) => setItems((p) => p.filter((it) => it.id !== id));
+  const removeItem = (id) => {
+    setItems((p) => p.filter((it) => it.id !== id));
+    setInvalidItemIds((p) => p.filter((x) => x !== id));
+  };
 
   const updateItem = (id, patch) => setItems((p) => p.map((it) => (it.id === id ? { ...it, ...patch } : it)));
 
-  const handleTypeChange = (id, v) =>
-    updateItem(id, {
-      profile_type: v,
-      profile_size: '',
-      steel_grade: '',
-      checkData: null,
-      checkError: null,
-      allocations: {},
-    });
+  const handleTypeChange = (id, v) => {
+    updateItem(id, { profile_type: v, profile_size: '', steel_grade: '', checkData: null, checkError: null, allocations: {} });
+    setInvalidItemIds((p) => p.filter((x) => x !== id));
+  };
 
-  const handleSizeChange = (id, v) =>
-    updateItem(id, {
-      profile_size: v,
-      steel_grade: '',
-      checkData: null,
-      checkError: null,
-      allocations: {},
-    });
+  const handleSizeChange = (id, v) => {
+    updateItem(id, { profile_size: v, steel_grade: '', checkData: null, checkError: null, allocations: {} });
+    setInvalidItemIds((p) => p.filter((x) => x !== id));
+  };
 
-  const handleSteelChange = (id, v) =>
-    updateItem(id, {
-      steel_grade: v,
-      checkData: null,
-      checkError: null,
-      allocations: {},
-    });
+  const handleSteelChange = (id, v) => {
+    updateItem(id, { steel_grade: v, checkData: null, checkError: null, allocations: {} });
+    setInvalidItemIds((p) => p.filter((x) => x !== id));
+  };
+
+  const handleWeightChange = (id, v) => {
+    updateItem(id, { total_weight: v });
+    setInvalidItemIds((p) => p.filter((x) => x !== id));
+  };
 
   const handleCheckKmd = useCallback(async (item) => {
     const { id, profile_type, profile_size, steel_grade } = item;
     if (!profile_type.trim() || !profile_size.trim() || !steel_grade.trim()) return;
-
     updateItem(id, { checkLoading: true, checkError: null, checkData: null, allocations: {} });
     try {
       const data = await checkMetal(profile_type.trim(), profile_size.trim(), steel_grade.trim());
@@ -122,12 +123,26 @@ export default function CreateDeliveryTab({ onCreated }) {
   };
 
   const handleSubmit = async () => {
-    setSubmitError(null);
-    if (!form.name.trim()) return setSubmitError('Введите название поставки');
-    if (!form.delivery_date) return setSubmitError('Укажите дату поставки');
-    for (const it of items) {
-      if (!it.profile_type.trim() || !it.profile_size.trim() || !it.steel_grade.trim()) return setSubmitError('Заполните тип, размер и марку стали для каждой позиции');
-      if (!it.total_weight || parseFloat(it.total_weight) <= 0) return setSubmitError('Укажите вес для каждой позиции');
+    setNameError('');
+    setItemsError('');
+    setInvalidItemIds([]);
+
+    if (!form.name.trim()) {
+      setNameError('Введите название поставки');
+      return;
+    }
+
+    if (!form.delivery_date) {
+      setNameError('Укажите дату поставки');
+      return;
+    }
+
+    const badIds = items.filter((it) => !it.profile_type.trim() || !it.profile_size.trim() || !it.steel_grade.trim() || !it.total_weight || parseFloat(it.total_weight) <= 0).map((it) => it.id);
+
+    if (badIds.length > 0) {
+      setInvalidItemIds(badIds);
+      setItemsError('Заполните тип, размер, марку стали и вес для каждой позиции');
+      return;
     }
 
     const payload = {
@@ -141,10 +156,7 @@ export default function CreateDeliveryTab({ onCreated }) {
         total_weight: parseFloat(it.total_weight),
         allocations: Object.entries(it.allocations)
           .filter(([, v]) => parseFloat(v) > 0)
-          .map(([kmd_uuid, v]) => ({
-            kmd_uuid,
-            allocated_weight: parseFloat(v),
-          })),
+          .map(([kmd_uuid, v]) => ({ kmd_uuid, allocated_weight: parseFloat(v) })),
       })),
     };
 
@@ -157,7 +169,7 @@ export default function CreateDeliveryTab({ onCreated }) {
       setItems([emptyItem()]);
       onCreated?.();
     } catch (e) {
-      setSubmitError(e.response?.data?.detail ?? e.message);
+      setItemsError(e.response?.data?.detail ?? e.message);
     } finally {
       setSubmitting(false);
     }
@@ -171,11 +183,12 @@ export default function CreateDeliveryTab({ onCreated }) {
           <div className="cd-field">
             <label className="cd-label">Название *</label>
             <input
-              className="cd-input"
+              className={`cd-input${nameError ? ' cd-input--error' : ''}`}
               placeholder="Например: Балка 20, июнь 2026"
               value={form.name}
               onChange={(e) => setField('name', e.target.value)}
             />
+            {nameError && <span className="cd-field-error">{nameError}</span>}
           </div>
           <div className="cd-field">
             <label className="cd-label">Дата поставки *</label>
@@ -202,16 +215,19 @@ export default function CreateDeliveryTab({ onCreated }) {
       <section className="cd-section">
         <h2 className="cd-section-title">Позиции</h2>
 
+        {itemsError && <div className="cd-items-error">{itemsError}</div>}
+
         <div className="cd-items-list">
           {items.map((item, idx) => (
             <ItemCard
               key={item.id}
               item={item}
               idx={idx}
+              isInvalid={invalidItemIds.includes(item.id)}
               onTypeChange={(v) => handleTypeChange(item.id, v)}
               onSizeChange={(v) => handleSizeChange(item.id, v)}
               onSteelChange={(v) => handleSteelChange(item.id, v)}
-              onWeightChange={(v) => updateItem(item.id, { total_weight: v })}
+              onWeightChange={(v) => handleWeightChange(item.id, v)}
               onRemove={() => removeItem(item.id)}
               canRemove={items.length > 1}
               unallocated={getUnallocated(item)}
@@ -254,7 +270,6 @@ export default function CreateDeliveryTab({ onCreated }) {
       </section>
 
       <div className="cd-submit-bar">
-        {submitError && <span className="cd-submit-error">{submitError}</span>}
         <button
           className="cd-submit-btn"
           onClick={handleSubmit}
@@ -267,12 +282,16 @@ export default function CreateDeliveryTab({ onCreated }) {
   );
 }
 
-function ItemCard({ item, idx, onTypeChange, onSizeChange, onSteelChange, onWeightChange, onRemove, canRemove, unallocated, onCheck, onAllocWeightChange }) {
+function ItemCard({ item, idx, isInvalid, onTypeChange, onSizeChange, onSteelChange, onWeightChange, onRemove, canRemove, unallocated, onCheck, onAllocWeightChange }) {
   const { checkData, checkLoading, checkError, allocations } = item;
   const canCheck = item.profile_type.trim() && item.profile_size.trim() && item.steel_grade.trim();
 
-  const fetchTypes = useCallback(async (search) => getProfileTypes(search), []);
+  const typeInvalid = isInvalid && !item.profile_type.trim();
+  const sizeInvalid = isInvalid && !item.profile_size.trim();
+  const steelInvalid = isInvalid && !item.steel_grade.trim();
+  const weightInvalid = isInvalid && (!item.total_weight || parseFloat(item.total_weight) <= 0);
 
+  const fetchTypes = useCallback(async (search) => getProfileTypes(search), []);
   const fetchSizes = useCallback(
     async (search) => {
       if (!item.profile_type) return [];
@@ -280,14 +299,13 @@ function ItemCard({ item, idx, onTypeChange, onSizeChange, onSteelChange, onWeig
     },
     [item.profile_type],
   );
-
   const fetchSteels = useCallback(async () => {
     if (!item.profile_type || !item.profile_size) return [];
     return getProfileSteels(item.profile_type, item.profile_size);
   }, [item.profile_type, item.profile_size]);
 
   return (
-    <div className="cd-item-card">
+    <div className={`cd-item-card${isInvalid ? ' cd-item-card--invalid' : ''}`}>
       <div className="cd-item-header">
         <span className="cd-item-num">Позиция {idx + 1}</span>
         {unallocated > 0.01 && <span className="cd-item-unalloc">На склад: {unallocated.toLocaleString('ru-RU')} кг</span>}
@@ -331,7 +349,9 @@ function ItemCard({ item, idx, onTypeChange, onSizeChange, onSteelChange, onWeig
             onChange={onTypeChange}
             fetchOptions={fetchTypes}
             placeholder="Балка, Швеллер..."
+            inputClassName={typeInvalid ? 'cd-input--error' : ''}
           />
+          {typeInvalid && <span className="cd-field-error">Укажите тип</span>}
         </div>
 
         <div className="cd-field">
@@ -342,7 +362,9 @@ function ItemCard({ item, idx, onTypeChange, onSizeChange, onSteelChange, onWeig
             fetchOptions={fetchSizes}
             placeholder={item.profile_type ? '10П, 20...' : 'Сначала тип'}
             disabled={!item.profile_type}
+            inputClassName={sizeInvalid ? 'cd-input--error' : ''}
           />
+          {sizeInvalid && <span className="cd-field-error">Укажите размер</span>}
         </div>
 
         <div className="cd-field">
@@ -353,13 +375,15 @@ function ItemCard({ item, idx, onTypeChange, onSizeChange, onSteelChange, onWeig
             fetchOptions={fetchSteels}
             placeholder={item.profile_size ? 'С245, С345...' : 'Сначала размер'}
             disabled={!item.profile_type || !item.profile_size}
+            inputClassName={steelInvalid ? 'cd-input--error' : ''}
           />
+          {steelInvalid && <span className="cd-field-error">Укажите марку</span>}
         </div>
 
         <div className="cd-field">
           <label className="cd-label">Общий вес, кг *</label>
           <input
-            className="cd-input cd-input--num"
+            className={`cd-input cd-input--num${weightInvalid ? ' cd-input--error' : ''}`}
             type="number"
             min="0.01"
             step="0.01"
@@ -367,6 +391,7 @@ function ItemCard({ item, idx, onTypeChange, onSizeChange, onSteelChange, onWeig
             value={item.total_weight}
             onChange={(e) => onWeightChange(e.target.value)}
           />
+          {weightInvalid && <span className="cd-field-error">Укажите вес</span>}
         </div>
       </div>
 
@@ -439,15 +464,11 @@ function ItemCard({ item, idx, onTypeChange, onSizeChange, onSteelChange, onWeig
                               return;
                             }
                             let num = parseFloat(val);
-                            if (isNaN(num) || num < 0) {
-                              return;
-                            }
+                            if (isNaN(num) || num < 0) return;
                             onAllocWeightChange(o.kmd_uuid, String(num));
                           }}
                           onKeyDown={(e) => {
-                            if (e.key === '-' || e.key === 'Minus' || e.key === 'e' || e.key === 'E') {
-                              e.preventDefault();
-                            }
+                            if (e.key === '-' || e.key === 'Minus' || e.key === 'e' || e.key === 'E') e.preventDefault();
                           }}
                         />
                         {inputVal && parseFloat(inputVal) > 0 && (
@@ -488,9 +509,7 @@ function ItemCard({ item, idx, onTypeChange, onSizeChange, onSteelChange, onWeig
                           title={o.real_deficit > available ? `Не хватает. Доступно: ${available.toLocaleString('ru-RU')} кг` : `Заполнить дефицит: ${o.real_deficit?.toLocaleString('ru-RU')} кг`}
                           onClick={() => {
                             const valueToSet = Math.min(o.real_deficit, available);
-                            if (valueToSet > 0) {
-                              onAllocWeightChange(o.kmd_uuid, String(Math.round(valueToSet * 100) / 100));
-                            }
+                            if (valueToSet > 0) onAllocWeightChange(o.kmd_uuid, String(Math.round(valueToSet * 100) / 100));
                           }}
                         >
                           {o.real_deficit > available ? `↑ ${available.toLocaleString('ru-RU')} кг` : '↑ дефицит'}
