@@ -108,7 +108,6 @@
   font-size: clamp(15px, 1.4vw, 20px);
 }
 
-/* ── правая часть: марки + разделитель + отгрузка ── */
 .order-stats-right {
   display: flex;
   align-items: flex-start;
@@ -153,12 +152,10 @@
   text-align: right;
 }
 
-/* Цвет цифр отгрузки — зелёный */
 .shipped-value {
   color: #16a34a;
 }
 
-/* ── Прогресс-бар отгрузки ── */
 .shipped-progress-wrap {
   display: flex;
   flex-direction: column;
@@ -204,4 +201,41 @@
 .name-and-ref-btn {
   display: flex;
   justify-content: space-between;
+}
+
+.report-order-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  align-self: center;
+  min-width: 100px;
+  justify-content: center;
+}
+
+.report-order-btn:hover:not(:disabled) {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+  color: #1e293b;
+}
+
+.report-order-btn:active:not(:disabled) {
+  background-color: #e2e8f0;
+}
+
+.report-order-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+  color: #94a3b8;
 }

@@ -2,6 +2,10 @@ import React from 'react';
 
 import './OrderHeader.css';
 import { getStatusColor } from '../../../../utils/statusUtils';
+import { generateOrderReport } from '../../../../utils/reportUtils';
+
+const COOLDOWN_SEC = 60;
+const STORAGE_KEY = 'report_last_generated';
 
 const RefreshButton = ({ onClick }) => (
   <button
@@ -27,10 +31,90 @@ const RefreshButton = ({ onClick }) => (
   </button>
 );
 
+const ReportButton = ({ onClick, loading }) => {
+  const getSecondsLeft = () => {
+    const last = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+    const left = Math.ceil((COOLDOWN_SEC * 1000 - (Date.now() - last)) / 1000);
+    return left > 0 ? left : 0;
+  };
+
+  const [secondsLeft, setSecondsLeft] = React.useState(getSecondsLeft);
+
+  React.useEffect(() => {
+    if (secondsLeft <= 0) return;
+    const interval = setInterval(() => {
+      const left = getSecondsLeft();
+      setSecondsLeft(left);
+      if (left <= 0) clearInterval(interval);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [secondsLeft]);
+
+  const isCooling = secondsLeft > 0;
+  const isDisabled = loading || isCooling;
+
+  const handleClick = () => {
+    onClick();
+    setSecondsLeft(COOLDOWN_SEC);
+  };
+
+  const title = isCooling ? `Повторный отчёт будет доступен через ${secondsLeft} сек.` : 'Сформировать отчёт по заказу';
+
+  return (
+    <button
+      className="report-order-btn"
+      onClick={handleClick}
+      disabled={isDisabled}
+      title={title}
+    >
+      <svg
+        width="15"
+        height="15"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line
+          x1="16"
+          y1="13"
+          x2="8"
+          y2="13"
+        />
+        <line
+          x1="16"
+          y1="17"
+          x2="8"
+          y2="17"
+        />
+        <polyline points="10 9 9 9 8 9" />
+      </svg>
+      {loading ? 'Загрузка...' : isCooling ? `Отчёт (${secondsLeft}с)` : 'Отчёт'}
+    </button>
+  );
+};
+
 const OrderHeader = ({ order, canChanges, onEditClick, onRefresh }) => {
+  const [reportLoading, setReportLoading] = React.useState(false);
+
   const formatWeight = (value) => `${Number(value).toLocaleString('ru-RU')} кг`;
 
   const shippedPercent = order.total_marks_weight > 0 ? Math.min(100, (order.total_shipped_weight / order.total_marks_weight) * 100).toFixed(1) : 0;
+
+  const handleReportClick = async () => {
+    setReportLoading(true);
+    try {
+      await generateOrderReport(order.uuid);
+    } catch (error) {
+      console.error('Ошибка при формировании отчёта:', error);
+    } finally {
+      setReportLoading(false);
+    }
+  };
 
   return (
     <>
@@ -60,6 +144,10 @@ const OrderHeader = ({ order, canChanges, onEditClick, onRefresh }) => {
               Редактировать
             </button>
           )}
+          <ReportButton
+            onClick={handleReportClick}
+            loading={reportLoading}
+          />
         </div>
         <div
           className="status-info"
@@ -68,7 +156,7 @@ const OrderHeader = ({ order, canChanges, onEditClick, onRefresh }) => {
           {order.status}
         </div>
       </div>
-      
+
       <div className="name-and-ref-btn">
         <p className="name-info">{order.name}</p>
         <RefreshButton onClick={onRefresh} />
