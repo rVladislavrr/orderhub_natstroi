@@ -68,7 +68,7 @@ async def get_profile_sizes(
         .order_by(Details.size)
     )
     if search:
-        stmt = stmt.where(Details.size.ilike(f"%{search}%"))
+        stmt = stmt.where(Details.size.ilike(f"{search}%"))
 
     rows = (await session.execute(stmt)).scalars().all()
     return rows

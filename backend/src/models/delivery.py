@@ -1,12 +1,3 @@
-"""
-DeliveryTruck      — машина/поставка
-DeliveryItem       — позиция металла в машине (профиль + сталь + вес)
-DeliveryAllocation — распределение позиции в конкретный КМД
-
-Остаток (remaining_weight = total_weight - allocated_weight) — это складской запас.
-Любой заказ может забрать металл со склада через POST /delivery/stock/allocate.
-"""
-
 from datetime import date
 
 from sqlalchemy import UUID, ForeignKey, Numeric, String, UniqueConstraint, DECIMAL

@@ -27,8 +27,6 @@ class ErrorInDataBase(Exception):
     pass
 
 
-
-
 class BaseManager(Generic[TCreate, TRead, TUpdate, TModel]):
     create_schema: type[TCreate]
     read_schema: type[TRead]
@@ -70,11 +68,12 @@ class BaseManager(Generic[TCreate, TRead, TUpdate, TModel]):
             raise DataBaseError(e)
 
         except IntegrityError as e:
-            conflict_field = _extract_conflict_field(e)
+            conflict_field = extract_conflict_field(e)
             database_logger.debug(
                 f"{request_id} | Объект{self.model.__name__} не создан тк поле попадает в unique",
             )
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={'msg': 'Already exist', 'field': conflict_field})
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                detail={'msg': 'Already exist', 'field': conflict_field})
 
         except SQLAlchemyError as e:
             database_logger.error(
