@@ -1,187 +1,339 @@
-.columns-bar {
-  background: #fff;
-  padding: 20px 4px 20px 4px;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.columns-bar h3 {
-  margin: 0 0 20px 20px;
-  color: #1e293b;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.test {
-  display: flex;
+/* ===== Trigger button ===== */
+.cs-trigger {
+  display: inline-flex;
   align-items: center;
-  gap: 20px;
-  width: 100%;
-  min-width: 0;
-}
-
-.columns-container {
-  flex: 1;
-  min-width: 0;
-  overflow: visible;
-}
-
-.columns-row {
-  display: flex;
-  gap: clamp(2px, 0.4vw, 6px);
-  flex-wrap: nowrap;
-  align-items: center;
-  width: 100%;
-}
-
-.column-chip {
-  display: flex;
-  align-items: center;
-  gap: 1px;
-  padding: clamp(4px, 0.4vw, 6px) clamp(6px, 0.7vw, 10px);
+  gap: 8px;
+  padding: 8px 14px;
   border: 1px solid #cbd5e1;
-  border-radius: 16px;
-  background: #f8fafc;
-  cursor: grab;
-  white-space: nowrap;
-  user-select: none;
-  transition: all 0.2s;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  justify-content: center;
-}
-
-.column-chip.dragging {
-  opacity: 1 !important;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  cursor: grabbing;
-  will-change: transform;
-}
-
-.column-chip:hover {
-  border-color: #004e8d;
-}
-
-.column-chip:active {
-  cursor: grabbing;
-}
-
-.column-chip input {
+  border-radius: 8px;
+  background: #fff;
+  color: #1e293b;
+  font-family: inherit;
+  font-size: 14px;
   cursor: pointer;
+  transition: all 0.2s;
+  --cs-accent: #004e8d;
 }
 
-.chip-label {
-  position: relative;
-  font-size: clamp(11px, 1vw, 14px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
+.cs-trigger:hover {
+  border-color: #004e8d;
+  background: #f0f7ff;
 }
 
-.chip-label::after {
-  content: attr(data-tooltip);
-  position: fixed;
-  transform: translateX(-100%) translateY(260%);
-  background-color: #1e293b;
-  color: #f8fafc;
-  padding: 6px 10px;
-  border-radius: 6px;
+.cs-badge {
+  background: #e0edfa;
+  color: #004e8d;
+  border-radius: 10px;
+  padding: 1px 8px;
   font-size: 12px;
-  white-space: nowrap;
-  pointer-events: none;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* ===== Modal overlay ===== */
+.cs-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 9999;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  opacity: 0;
-  transition: opacity 0.15s ease;
-  margin-top: -40px;
+  padding: 20px;
+  animation: cs-fade-in 0.15s ease;
 }
 
-.chip-label:hover::after {
-  opacity: 1;
+@keyframes cs-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.chips-divider {
-  width: 1px;
-  height: 22px;
-  background: #cbd5e1;
+/* ===== Modal panel ===== */
+.cs-modal {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  width: 460px;
+  max-width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: cs-slide-up 0.2s ease;
+}
+
+@keyframes cs-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cs-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
   flex-shrink: 0;
 }
 
-.weight-column-chip--separator {
-  margin-left: 0;
+.cs-modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
 }
 
-.weight-column-chip--separator::before {
-  display: none;
-}
-
-.weight-column-chip {
+.cs-close-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 1px;
-  padding: clamp(4px, 0.4vw, 6px) clamp(6px, 0.7vw, 10px);
-  border: 1px solid #cbd5e1;
-  border-radius: 16px;
-  background: #f8fafc;
-  white-space: nowrap;
-  user-select: none;
-  transition: all 0.2s;
-  cursor: default;
-  opacity: 0.9;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
   justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
 }
 
-.weight-column-chip span {
-  font-size: clamp(11px, 1vw, 14px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
+.cs-close-btn:hover {
+  background: #f1f5f9;
+  color: #475569;
 }
 
-.weight-column-chip input {
-  cursor: pointer;
+.cs-modal-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  font-size: 12px;
+  color: #94a3b8;
+  border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
 }
 
-.weight-column-chip:hover {
-  border-color: #cbd5e1;
+/* ===== Scrollable body ===== */
+.cs-modal-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px 12px;
+}
+
+.cs-modal-body::-webkit-scrollbar {
+  width: 4px;
+}
+.cs-modal-body::-webkit-scrollbar-track {
   background: #f8fafc;
-  transform: none;
-  box-shadow: none;
+}
+.cs-modal-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
-@media screen and (max-width: 1366px) {
-  .test {
-    overflow-x: auto;
-    padding-bottom: 4px;
-  }
+/* ===== Row ===== */
+.cs-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: #fff;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+  user-select: none;
+}
 
-  .test::-webkit-scrollbar {
-    height: 4px;
-  }
+.cs-row:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
 
-  .test::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 10px;
-  }
+.cs-row--dragging {
+  background: #fff;
+  border-color: #004e8d !important;
+  box-shadow: 0 4px 16px rgba(0, 78, 141, 0.12);
+}
 
-  .test::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
-  }
+/* Неактивные строки — просто серее, без зачёркивания */
+.cs-row--hidden {
+  background: #fafafa;
+}
 
-  .test::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-  }
+.cs-row--hidden .cs-label {
+  color: #b0bec5;
+}
 
-  .column-chip span,
-  .weight-column-chip span {
-    font-size: clamp(9px, 1vw, 12px);
-  }
+.cs-row--hidden .cs-drag-handle {
+  color: #e2e8f0;
+}
+
+.cs-row--fixed {
+  opacity: 0.7;
+}
+
+/* ===== Drag handle ===== */
+.cs-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1;
+  cursor: grab;
+  flex-shrink: 0;
+  width: 20px;
+  transition: color 0.15s;
+}
+
+.cs-row--fixed .cs-drag-handle {
+  cursor: default;
+  color: #e2e8f0;
+}
+
+.cs-row:hover:not(.cs-row--hidden) .cs-drag-handle {
+  color: #94a3b8;
+}
+
+.cs-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* ===== Custom checkbox ===== */
+/* Скрываем нативный чекбокс */
+.cs-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 5px;
+  background: #fff;
+  cursor: pointer;
+  position: relative;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.cs-checkbox:hover:not(:disabled) {
+  border-color: #004e8d;
+}
+
+/* Галочка через псевдоэлемент */
+.cs-checkbox:checked {
+  background: #004e8d;
+  border-color: #004e8d;
+}
+
+.cs-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1.5px;
+  width: 6px;
+  height: 10px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+.cs-checkbox:disabled {
+  cursor: default;
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+.cs-checkbox:disabled:checked {
+  background: #93b8d8;
+  border-color: #93b8d8;
+}
+
+/* ===== Label ===== */
+.cs-label {
+  flex: 1;
+  font-size: 14px;
+  color: #334155;
+  cursor: pointer;
+  line-height: 1.4;
+  transition: color 0.15s;
+}
+
+.cs-row--fixed .cs-label {
+  cursor: default;
+}
+
+/* ===== Fixed badge ===== */
+.cs-fixed-badge {
+  font-size: 11px;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+
+/* ===== Footer ===== */
+.cs-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-top: 1px solid #f1f5f9;
+  flex-shrink: 0;
+}
+
+.cs-footer-count {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.cs-footer-count strong {
+  color: #1e293b;
+}
+
+.cs-footer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.cs-btn {
+  padding: 7px 16px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cs-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.cs-btn--primary {
+  background: #004e8d;
+  color: #fff;
+  border-color: #004e8d;
+}
+
+.cs-btn--primary:hover {
+  background: #004176;
+  border-color: #004176;
 }

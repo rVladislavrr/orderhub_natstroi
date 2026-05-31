@@ -21,19 +21,29 @@
   min-width: 0;
 }
 
+.main-content-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
 .print-button {
-  display: block;
-  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border: 1px solid #004e8d;
   border-radius: 6px;
-  padding: 8px 12px;
+  padding: 8px 14px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
   background-color: #004e8d;
   color: #f8fafc;
-  margin-top: 20px;
   font-family: inherit;
   font-size: 14px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .print-button:hover {
@@ -50,59 +60,126 @@
 }
 
 @media print {
-  body * {
-    visibility: hidden;
+  .main-content-toolbar,
+  .print-page-info,
+  .filters-sidebar,
+  .no-data,
+  .data-table-scroll-top {
+    display: none !important;
   }
 
-  .data-table-container,
-  .data-table-container *,
-  .data-table-container td,
-  .data-table-container th,
-  .data-table-container tr,
-  .data-table-container tbody,
-  .data-table-container thead {
-    visibility: visible !important;
-    color: #000 !important;
+  .queue-print-page {
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+  }
+
+  .main-content-wrapper {
+    display: block !important;
+  }
+
+  .main-content {
+    width: 100% !important;
+  }
+
+  .data-table-wrapper {
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .data-table-container {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    border: none;
-  }
-
-  .print-button {
-    display: none;
+    overflow: visible !important;
+    border: none !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
   }
 
   .data-table {
-    font-size: 12px;
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed !important;
+    font-size: 9px !important;
+    border-collapse: collapse !important;
   }
 
-  .data-table td,
+  .data-table thead {
+    display: table-header-group !important;
+  }
+
+  .data-table tbody {
+    display: table-row-group !important;
+  }
+
+  .data-table tfoot {
+    display: table-footer-group !important;
+  }
+
+  .data-table tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
   .data-table th {
-    color: #333 !important;
+    background-color: #e8e8e8 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color: #000 !important;
+    font-size: 8px !important;
+    font-weight: 700 !important;
+    padding: 5px 4px !important;
+    border: 0.5px solid #999 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    vertical-align: bottom !important;
+  }
+
+  .data-table th .th-screen {
+    display: none !important;
+  }
+
+  .data-table th .th-print {
+    display: inline !important;
+  }
+
+  .data-table td {
+    color: #000 !important;
+    font-size: 9px !important;
+    padding: 4px 4px !important;
+    border: 0.5px solid #999 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    vertical-align: top !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  .data-table th {
-    background-color: #fff !important;
+  .data-table tfoot td {
+    background-color: #e8e8e8 !important;
+    font-weight: 700 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  .queue-print-page {
-    min-height: auto !important;
-    margin-bottom: 0 !important;
+  .print-header {
+    text-align: center;
+    margin-bottom: 15px;
+  }
+
+  .print-header h2 {
+    font-size: 14px;
+    margin: 0;
   }
 
   html,
   body {
+    margin: 0 !important;
+    padding: 0 !important;
     height: auto !important;
   }
 
   @page {
-    margin: 10mm;
+    size: A4 landscape;
+    margin: 8mm 10mm;
   }
 }

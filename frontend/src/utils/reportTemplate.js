@@ -28,7 +28,6 @@ const fmtDate = (value) => {
   }
 };
 
-// Короткий бар: 12 символов + процент, всё в одной строке
 const progressBar = (pct) => {
   const val = Math.min(100, Math.max(0, parseFloat(pct) || 0));
   const total = 12;
@@ -209,11 +208,9 @@ export const buildReportHtml = (data) => {
       padding: 5pt 8pt;
       border-bottom: 0.5pt solid #ddd;
       vertical-align: middle;
-      /* Запрещаем перенос внутри ячейки с баром */
       white-space: nowrap;
     }
 
-    /* Только первая колонка может переносить длинные лейблы */
     .data-table td:first-child {
       white-space: normal;
       font-weight: 500;
@@ -257,7 +254,6 @@ export const buildReportHtml = (data) => {
     .kmd-table .row-even td { background: #f5f5f5; }
     .kmd-table .row-odd td  { background: #fff; }
 
-    /* Прогресс-бар — моноширинный, не переносится */
     .pbar {
       font-family: 'Roboto Mono', monospace;
       font-size: 9pt;

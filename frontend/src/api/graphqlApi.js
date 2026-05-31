@@ -69,7 +69,7 @@ export const getDynamicFilterOptions = async (field, kmdUuids = [], filters = {}
         ) {
           nodes {
             value
-            totalQuantity
+            totalWeightMarks
           }
         }
       }
@@ -92,9 +92,7 @@ export const getDynamicHierarchy = async ({ groupBy = [], kmdUuids = [], filters
 
     Object.keys(filters).forEach((key) => {
       if (filters[key] && filters[key].length > 0) {
-        if (key === 'kmd_num') {
-          return;
-        }
+        if (key === 'kmd_num') return;
 
         const toCamelCase = (str) => str.replace(/_./g, (match) => match[1].toUpperCase());
         let value = filters[key];
@@ -128,15 +126,15 @@ export const getDynamicHierarchy = async ({ groupBy = [], kmdUuids = [], filters
             .join(', ')}}`
         : '';
 
-    const weightField = isNumDetailVisible ? 'totalWeight' : 'totalMarkWeight';
-
+    // На нодах запрашиваем оба поля сразу — так flattenHierarchy сам выберет нужное
     const buildChildrenQuery = (depth, maxDepth) => {
       if (depth >= maxDepth) return '';
       return `
         children {
           level
           value
-          ${weightField}
+          totalWeightDetails
+          totalWeightMarks
           ${buildChildrenQuery(depth + 1, maxDepth)}
         }
       `;
@@ -155,13 +153,16 @@ export const getDynamicHierarchy = async ({ groupBy = [], kmdUuids = [], filters
           nodes {
             level
             value
-            ${weightField}
+            totalWeightDetails
+            totalWeightMarks
             ${childrenQuery}
           }
-            statistics {
-            totalWeight
-            totalQuantity
-            }
+          statistics {
+            totalWeightMarks
+            totalWeightDetails
+            detailQuantity
+            markQuantity
+          }
         }
       }
     `;
