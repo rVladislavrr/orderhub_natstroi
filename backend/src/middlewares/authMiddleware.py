@@ -72,7 +72,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         if ('orders' in request.url.path or
                 'kmd' in request.url.path or
-                'marks' in request.url.path):
+                'marks' in request.url.path ) and ( 'materials' not in request.url.path):
             if user.permissions.can_read(CategoryEnum.ORDER) and request.method == 'GET':
                 return await call_next(request)
             elif user.permissions.can_write(CategoryEnum.ORDER):

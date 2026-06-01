@@ -1,20 +1,23 @@
 import logging
+import math
 from collections import defaultdict
 from math import ceil
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import UUID4
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.db.base import ErrorInDataBase, DataBaseError
 from src.db.connection import get_async_session
+from src.db.ordersManager import ordersManager
 from src.models.orders import Orders
 from src.models.KMD import KMD
 from src.models.rel_markadet import RelMarkaDel
 from src.models.delivery import DeliveryAllocation, DeliveryItem
-from src.shemas.pagination import PaginationInfo
+from src.shemas.pagination import PaginationInfo, PaginatedResponseOrder
 
 router = APIRouter(tags=["materials"])
 log = logging.getLogger('Мате роутер')
@@ -250,3 +253,51 @@ async def report_all_active_orders(
             page=page, limit=limit,
         ),
     }
+
+
+@router.get(
+    '/orders',
+    status_code=status.HTTP_200_OK,
+summary='Получение всех заказов'
+)
+async def get_orders(request: Request,
+                     limit: int = Query(5, gt=0),
+                     page: int = Query(1, gt=0),
+                     session: AsyncSession = Depends(get_async_session)) -> PaginatedResponseOrder:
+    request_id = request.state.request_id
+    log.info(f'{request_id}| Получение заказов')
+
+    try:
+        list_orders, total_items = await ordersManager.get_orders(session,
+                                                                  limit=limit,
+                                                                  page=page,
+                                                                  request_id=request_id)
+
+        total_pages = math.ceil(total_items / limit) if total_items > 0 else 0
+        has_more = page < total_pages
+        has_prev = page > 1
+
+        res = PaginatedResponseOrder(
+            orders=list_orders,
+            pagination=PaginationInfo(
+                page=page,
+                limit=limit,
+                total_items=total_items,
+                total_pages=total_pages,
+                has_more=has_more,
+                has_previous=has_prev,
+                next_page=page + 1 if has_more else None,
+                previous_page=page - 1 if has_prev else None
+            )
+        )
+
+    except DataBaseError:
+        log.error(f'{request_id}| база данных недоступна')
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='База данных недоступна')
+
+    except ErrorInDataBase:
+        log.error(f'{request_id}| ошибка в получении')
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='Ошибка при получении')
+
+    log.info(f'{request_id}| Заказы успешно получены')
+    return res
