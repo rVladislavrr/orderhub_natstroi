@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import LoadingDots from '../../components/LoadingDots/LoadingDots';
 import { getActiveMaterials, getMaterialsByOrder, getAllActiveMaterials } from '../../api/materialsApi';
-import { getOrders } from '../../api/ordersApi';
+import { getOrdersMaterials } from '../../api/ordersApi';
 import { getStatusColor } from '../../utils/statusUtils';
 import StockTab from './StockTab/StockTab';
 import CreateDeliveryTab from './CreateDeliveryTab/CreateDeliveryTab';
@@ -79,7 +79,7 @@ export default function MaterialsPage() {
   const fetchOrders = useCallback(async () => {
     setOrdersLoading(true);
     try {
-      const data = await getOrders(1, 100);
+      const data = await getOrdersMaterials(1, 100);
       setOrders(data.orders ?? data.rows ?? []);
     } catch (e) {
       console.error('Ошибка загрузки заказов', e);

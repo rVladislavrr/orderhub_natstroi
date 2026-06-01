@@ -86,6 +86,13 @@ export const getOrders = async (page, limit = 5) => {
   return response.data;
 };
 
+export const getOrdersMaterials = async (page, limit = 5) => {
+  const response = await api.get('/materials/orders', {
+    params: { page, limit },
+  });
+  return response.data;
+};
+
 export const createOrder = async (orderData) => {
   try {
     const response = await api.post('/orders', orderData);
