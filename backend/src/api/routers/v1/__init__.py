@@ -8,6 +8,7 @@ from .users import router as users_router  # noqa: F401
 from .materials import router as materials_router  # noqa: F401
 from .work import router as work_router  # noqa: F401
 from .delivery import router as delivery_router  # noqa: F401
+from .report import router as report_router  # noqa: F401
 
 from fastapi import APIRouter, Depends
 
@@ -25,5 +26,6 @@ router.include_router(users_router, prefix="/users")
 router.include_router(materials_router, prefix="/materials")
 router.include_router(work_router, prefix="/work")
 router.include_router(delivery_router, prefix="/delivery")
+router.include_router(report_router,)
 
 
