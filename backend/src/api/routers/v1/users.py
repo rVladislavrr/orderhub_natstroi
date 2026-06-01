@@ -183,7 +183,7 @@ class UserWorkStatsResponse(BaseModel):
 async def get_user_work_stats(
         user_uuid: UUID4,
         page: int = Query(1, ge=1, description="Номер страницы"),
-        limit: int = Query(20, ge=1, le=100, description="Записей на странице"),
+        limit: int = Query(40, ge=1, le=100, description="Записей на странице"),
         session: AsyncSession = Depends(get_async_session),
 ):
     # 1. Проверяем пользователя

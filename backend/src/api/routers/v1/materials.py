@@ -5,7 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import UUID4
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -14,6 +14,7 @@ from src.models.orders import Orders
 from src.models.KMD import KMD
 from src.models.rel_markadet import RelMarkaDel
 from src.models.delivery import DeliveryAllocation, DeliveryItem
+from src.shemas.pagination import PaginationInfo
 
 router = APIRouter(tags=["materials"])
 log = logging.getLogger('Мате роутер')
@@ -68,7 +69,6 @@ async def _get_allocated_weights(
         )
     )).all()
 
-    # kmd_uuid → num_kmd
     kmd_num_map = {str(k.uuid): k.num_kmd for k in kmd_list}
 
     allocated: dict[tuple[str, str], dict[str, float]] = defaultdict(lambda: defaultdict(float))
@@ -84,8 +84,12 @@ def _build_response(
         merged: dict[tuple[str, str], dict],
         columns: list,
         allocated: dict[tuple[str, str], dict[str, float]] | None = None,
+        hide_zero_deficit: bool = False,
+        page: int | None = None,
+        limit: int | None = None,
 ) -> dict[str, Any]:
-    rows = []
+
+    all_rows = []
     column_totals: dict = defaultdict(float)
     grand_total = 0.0
     total_deficit = 0.0
@@ -94,7 +98,7 @@ def _build_response(
         totals = {col: round(col_weights.get(col, 0.0), 1) for col in columns}
         row_total = round(sum(totals.values()), 1)
 
-        row = {
+        row: dict[str, Any] = {
             "profile": profile,
             "steel_grade": steel,
             "totals": totals,
@@ -109,20 +113,46 @@ def _build_response(
             row["deficit"] = deficit
             total_deficit += deficit
 
-        rows.append(row)
-
         for col, w in totals.items():
             column_totals[col] += w
         grand_total += row_total
 
-    result = {
+        all_rows.append(row)
+
+    if hide_zero_deficit and allocated is not None:
+        all_rows = [r for r in all_rows if r.get("deficit", 1) != 0]
+
+    total_items = len(all_rows)
+
+    pagination: PaginationInfo | None = None
+    if page is not None and limit is not None:
+        total_pages = ceil(total_items / limit) if total_items else 1
+        offset = (page - 1) * limit
+        paged_rows = all_rows[offset: offset + limit]
+
+        pagination = PaginationInfo(
+            page=page,
+            limit=limit,
+            total_items=total_items,
+            total_pages=total_pages,
+            has_more=page < total_pages,
+            has_previous=page > 1,
+            next_page=page + 1 if page < total_pages else None,
+            previous_page=page - 1 if page > 1 else None,
+        )
+    else:
+        paged_rows = all_rows
+
+    result: dict[str, Any] = {
         "columns": columns,
-        "rows": rows,
+        "rows": paged_rows,
         "column_totals": {col: round(v, 1) for col, v in column_totals.items()},
         "grand_total": round(grand_total, 1),
     }
     if allocated is not None:
         result["total_deficit"] = round(total_deficit, 1)
+    if pagination is not None:
+        result["pagination"] = pagination.model_dump()
 
     return result
 
@@ -130,6 +160,7 @@ def _build_response(
 async def report_by_order(
         uuid_orders: UUID4,
         include_deficit: bool = Query(False, description="Добавить столбец дефицита"),
+        hide_zero_deficit: bool = Query(False),
         session: AsyncSession = Depends(get_async_session),
 ):
     stmt = (
@@ -144,7 +175,7 @@ async def report_by_order(
     order = (await session.execute(stmt)).scalar_one_or_none()
 
     if order is None:
-        raise HTTPException(status_code=404, detail=f"Заказ не найден")
+        raise HTTPException(status_code=404, detail="Заказ не найден")
     if not order.kmd_list:
         raise HTTPException(status_code=404, detail="В заказе нет КМД")
 
@@ -168,13 +199,15 @@ async def report_by_order(
             "name": order.name,
             "status": order.status,
         },
-        **_build_response(merged, kmd_numbers, allocated),
+        **_build_response(merged, kmd_numbers, allocated, hide_zero_deficit),
     }
+
 
 @router.get("/active", summary="Профили и сталь по всем активным заказам", response_model=dict)
 async def report_all_active_orders(
         page: int = Query(1, ge=1),
         limit: int = Query(5, ge=1, le=200),
+        hide_zero_deficit: bool = Query(False),
         include_deficit: bool = Query(False, description="Добавить столбец дефицита"),
         session: AsyncSession = Depends(get_async_session),
 ):
@@ -206,25 +239,14 @@ async def report_all_active_orders(
 
     merged = _merge_aggregates(aggregates)
 
-    # Пагинация по профилям
-    all_keys = sorted(merged.keys())
-    total_items = len(all_keys)
-    total_pages = ceil(total_items / limit) if total_items else 1
-    offset = (page - 1) * limit
-    paged_merged = {k: merged[k] for k in all_keys[offset: offset + limit]}
-
     allocated = None
     if include_deficit:
         allocated = await _get_allocated_weights(None, all_kmd, session)
 
     return {
         "orders_count": len(orders),
-        "pagination": {
-            "page": page, "limit": limit,
-            "total_items": total_items, "total_pages": total_pages,
-            "has_more": page < total_pages, "has_previous": page > 1,
-            "next_page": page + 1 if page < total_pages else None,
-            "previous_page": page - 1 if page > 1 else None,
-        },
-        **_build_response(paged_merged, order_numbers, allocated),
+        **_build_response(
+            merged, order_numbers, allocated, hide_zero_deficit,
+            page=page, limit=limit,
+        ),
     }

@@ -5,7 +5,7 @@ from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.db.base import BaseManager
 from src.db.connection import async_session_maker
-from src.models import KMD, Marks
+from src.models import KMD, Marks, RelUserDel, RelMarkaDel
 from src.shemas.kmd import KMDRead
 from src.shemas.marks import MarksRead
 from src.shemas.pagination import Filters
@@ -78,10 +78,14 @@ class KmdManager(BaseManager[..., ..., ..., KMD]):
     @staticmethod
     def create_filters_marks(filter_name: list[str] | None,
                              filter_cooperation: list[str] | None,
-                             filter_mounting_part: list[str] | None):
+                             filter_mounting_part: list[str] | None,
+                             filter_status: list[str] | None,):
         filters = []
         if filter_name:
             filters.append(Marks.name.in_(filter_name))
+
+        if filter_status:
+            filters.append(Marks.status.in_(filter_status))
 
         if filter_cooperation:
             has_null = any(v == FilterValue.NULL for v in filter_cooperation)
@@ -153,18 +157,34 @@ class KmdManager(BaseManager[..., ..., ..., KMD]):
     @staticmethod
     async def get_filters_column(kmd_uuid, column_name, session) -> list[Filters]:
         atr_column = getattr(Marks, column_name, None)
-        count_c = func.count(Marks.id).label('count')
-        query = select(atr_column.label('value'),
-                       count_c).where(Marks.kmd_uuid == kmd_uuid).group_by(atr_column)
-        query = query.order_by(count_c.desc())
-        rows = (await session.execute(query)).all()
-        return [
-            Filters(
-                name=row.value if row.value is not None else FilterValue.NULL.value,
-                count=row.count
-            )
-            for row in rows
-        ]
+        if atr_column:
+
+            count_c = func.count(Marks.id).label('count')
+            query = select(atr_column.label('value'),
+                           count_c).where(Marks.kmd_uuid == kmd_uuid).group_by(atr_column)
+            query = query.order_by(count_c.desc())
+            rows = (await session.execute(query)).all()
+            return [
+                Filters(
+                    name=row.value if row.value is not None else FilterValue.NULL.value,
+                    count=row.count
+                )
+                for row in rows
+            ]
+        else:
+            atr_column = getattr(RelMarkaDel, column_name, None)
+            count_c = func.count(RelMarkaDel.id).label('count')
+            query = select(atr_column.label('value'),
+                           count_c).where(RelMarkaDel.kmd_uuid == kmd_uuid).group_by(atr_column)
+            query = query.order_by(count_c.desc())
+            rows = (await session.execute(query)).all()
+            return [
+                Filters(
+                    name=row.value if row.value is not None else FilterValue.NULL.value,
+                    count=row.count
+                )
+                for row in rows
+            ]
 
 
 kmdManager = KmdManager()

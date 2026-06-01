@@ -4,6 +4,7 @@ from math import ceil
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, UUID4
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -150,7 +151,7 @@ async def record_work(
 )
 async def get_work_log(
         page: int = Query(1, ge=1, description="Номер страницы"),
-        limit: int = Query(20, ge=1, le=100, description="Записей на странице"),
+        limit: int = Query(40, ge=1, le=100, description="Записей на странице"),
         user_uuid: UUID | None = Query(None, description="Фильтр по пользователю"),
         completion_date: date | None = Query(None, description="Фильтр по дате выполнения"),
         session: AsyncSession = Depends(get_async_session),
@@ -233,4 +234,144 @@ async def get_work_log(
             next_page=page + 1 if page < total_pages else None,
             previous_page=page - 1 if page > 1 else None,
         ),
+    )
+
+
+class BulkWorkItem(BaseModel):
+    rel_markadel_id: int
+    quantity: int = Query(..., gt=0)
+
+
+class BulkWorkRequest(BaseModel):
+    user_uuid: UUID4
+    completion_date: date
+    items: list[BulkWorkItem]  # список {rel_markadel_id, quantity} — фронт считает сам
+
+
+class BulkWorkResultItem(BaseModel):
+    rel_markadel_id: int
+    mark_title: str
+    quantity: int
+    remaining_quantity: int
+    detail_status: str
+    mark_status: str
+
+
+class BulkWorkResponse(BaseModel):
+    user_uuid: UUID4
+    completion_date: date
+    processed: int  # сколько связей обработано
+    results: list[BulkWorkResultItem]
+
+
+@router.post(
+    "/bulk",
+    response_model=BulkWorkResponse,
+    status_code=201,
+    summary="Записать работу сразу по нескольким связям марка-деталь",
+)
+async def record_work_bulk(
+        body: BulkWorkRequest,
+        session: AsyncSession = Depends(get_async_session),
+):
+    """
+    Фронт отправляет сколько деталей пользователь сделал в каждую марку.
+    Все связи обрабатываются в одной транзакции.
+    """
+    # Проверяем пользователя
+    user = await session.get(Users, body.user_uuid)
+    if user is None:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    if not user.is_active:
+        raise HTTPException(status_code=400, detail="Пользователь неактивен")
+
+    if not body.items:
+        raise HTTPException(status_code=400, detail="Список деталей пуст")
+
+    # Загружаем все rel_markadel одним запросом
+    rel_ids = [item.rel_markadel_id for item in body.items]
+    rels = (await session.execute(
+        select(RelMarkaDel).where(RelMarkaDel.id.in_(rel_ids))
+    )).scalars().all()
+    rel_map = {r.id: r for r in rels}
+
+    # Валидация всех связей перед записью
+    for item in body.items:
+        rel = rel_map.get(item.rel_markadel_id)
+        if rel is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Связь {item.rel_markadel_id} не найдена"
+            )
+        if rel.status == DetailsStatus.COMPLETED:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Связь {item.rel_markadel_id} уже завершена"
+            )
+        if rel.status == DetailsStatus.CANCELLED:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Связь {item.rel_markadel_id} отменена"
+            )
+        if item.quantity > rel.remaining_quantity:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Связь {item.rel_markadel_id}: "
+                    f"указано {item.quantity}, остаток {rel.remaining_quantity}"
+                )
+            )
+
+    # Записываем работу и обновляем статусы
+    kmd_uuids_to_update = set()
+    results = []
+
+    for item in body.items:
+        rel = rel_map[item.rel_markadel_id]
+
+        work_entry = RelUserDel(
+            user_uuid=body.user_uuid,
+            rel_markadel_id=item.rel_markadel_id,
+            quantity=item.quantity,
+            completion_date=body.completion_date,
+        )
+        session.add(work_entry)
+
+        rel.remaining_quantity -= item.quantity
+        if rel.remaining_quantity <= 0:
+            rel.remaining_quantity = 0
+            rel.status = DetailsStatus.COMPLETED
+        else:
+            rel.status = DetailsStatus.IN_PROGRESS
+
+        kmd_uuids_to_update.add(rel.kmd_uuid)
+        results.append((rel, item.quantity))
+
+    # flush чтобы каскад видел обновлённые статусы
+    await session.flush()
+
+    # Каскадно обновляем статусы — по одному разу для каждого KMD
+    for kmd_uuid in kmd_uuids_to_update:
+        await cascade_status_update(kmd_uuid, session)
+
+    await session.commit()
+
+    # Формируем ответ с актуальными статусами марок
+    response_items = []
+    for rel, quantity in results:
+        mark = await session.get(Marks, rel.marks_id)
+        response_items.append(BulkWorkResultItem(
+            rel_markadel_id=rel.id,
+            mark_title=mark.title if mark else "—",
+            quantity=quantity,
+            remaining_quantity=rel.remaining_quantity,
+            detail_status=rel.status,
+            mark_status=mark.status if mark else "—",
+        ))
+
+    return BulkWorkResponse(
+        user_uuid=body.user_uuid,
+        completion_date=body.completion_date,
+        processed=len(results),
+        results=response_items,
     )
