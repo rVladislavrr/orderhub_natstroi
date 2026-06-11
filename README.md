@@ -1,93 +1,325 @@
-# orderhub_natstroi
+# OrderHub — Nastroy
 
+> CRM-система управления жизненным циклом производственных заказов для ООО «Настрой»
 
+Веб-приложение для автоматизации производственных процессов металлоконструкций: от создания заказа до отгрузки готовых изделий. Система отслеживает полный жизненный цикл заказа через иерархию **Заказ → КМД → Марка → Деталь** и автоматически пересчитывает статусы на каждом уровне.
 
-## Getting started
+---
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Содержание
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+- [Возможности](#возможности)
+- [Архитектура](#архитектура)
+- [Жизненный цикл заказа](#жизненный-цикл-заказа)
+- [Технологии](#технологии)
+- [Структура проекта](#структура-проекта)
+- [Быстрый старт](#быстрый-старт)
+- [Переменные окружения](#переменные-окружения)
+- [API](#api)
+- [Права доступа](#права-доступа)
 
-## Add your files
+---
 
-* [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Возможности
+
+- **Управление заказами** — создание, редактирование, отслеживание статуса заказов с автоматическим расчётом прогресса
+- **КМД (Комплект монтажных деталей)** — загрузка Excel-файлов с марками и деталями через фоновые задачи
+- **Производственный учёт** — отслеживание сборки и отгрузки марок с агрегатами по весу и количеству
+- **Очередь печати** — формирование и фильтрация деталей для запуска в производство
+- **Управление материалами** — склад, поставки, журнал грузовиков
+- **Журнал работ** — учёт рабочего времени сотрудников по заказам
+- **Отчёты** — генерация отчётов по заказам
+- **Административная панель** — встроенный SQLAdmin для управления данными
+- **GraphQL API** — дополнительный интерфейс запросов через Strawberry
+- **Ролевая модель** — гибкая система прав (storage / order / product / role) с уровнями 0/1/2
+
+---
+
+## Архитектура
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/rvladislavrr_ibolonkin/orderhub_natstroi.git
-git branch -M main
-git push -uf origin main
+┌─────────────────────────────────────────────────────┐
+│                     Nginx (reverse proxy)            │
+└──────────────┬──────────────────────────────────────┘
+               │
+       ┌───────┴────────┐
+       │                │
+┌──────▼──────┐  ┌──────▼──────┐
+│  React SPA  │  │  FastAPI    │
+│  (frontend) │  │  (backend)  │
+└─────────────┘  └──────┬──────┘
+                        │
+          ┌─────────────┼──────────────┐
+          │             │              │
+   ┌──────▼─────┐ ┌─────▼──────┐ ┌───▼──────┐
+   │ PostgreSQL │ │   Redis    │ │   S3     │
+   │    (БД)   │ │ (сессии/   │ │ (файлы)  │
+   └────────────┘ │  кэш/очер.)│ └──────────┘
+                  └────────────┘
+                        │
+                 ┌──────▼──────┐
+                 │   Taskiq    │
+                 │  (воркер)   │
+                 └─────────────┘
 ```
 
-## Integrate with your tools
+**Backend** запускает одновременно:
+- `gunicorn` с `UvicornWorker` (4 воркера) — HTTP API
+- `taskiq worker` — фоновая обработка Excel-файлов с КМД
 
-* [Set up project integrations](https://gitlab.com/rvladislavrr_ibolonkin/orderhub_natstroi/-/settings/integrations)
+---
 
-## Collaborate with your team
+## Жизненный цикл заказа
 
-* [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+Статусы обновляются автоматически снизу вверх: изменение детали пересчитывает марку, марка пересчитывает КМД, КМД пересчитывает заказ.
 
-## Test and Deploy
+```
+ЗАКАЗ
+├── Новый        → В работе      → Завершен / Отменен
+│
+└── КМД (комплект монтажных деталей)
+    ├── Новый    → В работе      → Завершен / Отменен
+    │
+    └── МАРКА (металлоконструкция)
+        ├── Новый → В работе → Готов → Собран → Отгружен
+        │
+        └── ДЕТАЛЬ
+            ├── Новый → В работе → Завершена / Отменена
+```
 
-Use the built-in continuous integration in GitLab.
+**Правила автоматического пересчёта:**
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+| Уровень | Условие → Статус |
+|---------|-----------------|
+| Марка | Все детали завершены → **Готов** |
+| Марка | Хотя бы одна деталь в работе → **В работе** |
+| КМД | Все марки собраны/отгружены → **Завершен** |
+| КМД | Хотя бы одна марка не новая → **В работе** |
+| Заказ | Все КМД завершены → **Завершен** |
+| Заказ | Хотя бы один КМД в работе/завершен → **В работе** |
 
-***
+---
 
-# Editing this README
+## Технологии
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### Backend
+| Технология | Версия | Назначение |
+|------------|--------|------------|
+| Python | ≥ 3.12 | Основной язык |
+| FastAPI | 0.135.x | REST API + OpenAPI документация |
+| SQLAlchemy | 2.0.x | ORM (async) |
+| PostgreSQL | 16 | Основная БД |
+| Alembic | — | Миграции схемы БД |
+| Redis | 7.2 | Сессии, кэш, очередь задач |
+| Taskiq | 0.12.x | Фоновые задачи (обработка Excel) |
+| Strawberry | — | GraphQL |
+| SQLAdmin | 0.23.x | Административная панель |
+| Pandas + openpyxl | — | Парсинг Excel-файлов КМД |
+| aiobotocore | 3.x | S3-совместимое хранилище файлов |
+| Gunicorn + Uvicorn | — | ASGI-сервер |
+| JWT (RS256) | — | Аутентификация |
 
-## Suggestions for a good README
+### Frontend
+| Технология | Версия | Назначение |
+|------------|--------|------------|
+| React | 19.x | UI-фреймворк |
+| React Router | 7.x | Клиентская маршрутизация |
+| Axios | 1.x | HTTP-запросы |
+| @dnd-kit | 6.x | Drag-and-drop (очередь деталей) |
+| React Toastify | 11.x | Уведомления |
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### Инфраструктура
+- **Docker + Docker Compose** — контейнеризация всех сервисов
+- **Nginx** — reverse proxy (настраивается отдельно)
 
-## Name
-Choose a self-explaining name for your project.
+---
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+## Структура проекта
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+```
+orderhub_natstroi/
+├── backend/
+│   ├── src/
+│   │   ├── api/routers/v1/      # REST эндпоинты
+│   │   │   ├── auth.py          # Аутентификация (JWT)
+│   │   │   ├── orders.py        # Заказы
+│   │   │   ├── kmd.py           # КМД
+│   │   │   ├── marks.py         # Марки
+│   │   │   ├── materials.py     # Материалы / склад
+│   │   │   ├── delivery.py      # Поставки
+│   │   │   ├── work.py          # Журнал работ
+│   │   │   ├── report.py        # Отчёты
+│   │   │   └── users.py         # Пользователи
+│   │   ├── models/              # SQLAlchemy модели
+│   │   ├── shemas/              # Pydantic схемы
+│   │   ├── db/                  # Менеджеры запросов к БД
+│   │   ├── service/             # Redis, S3
+│   │   ├── utils/               # Права, JWT, хэши, статусы
+│   │   ├── graphql/             # GraphQL схема (Strawberry)
+│   │   ├── middlewares/         # Auth, Error, Logging
+│   │   ├── config.py            # Настройки (pydantic-settings)
+│   │   └── main.py              # Точка входа FastAPI
+│   ├── workers/
+│   │   └── tasks/read_excel.py  # Фоновая задача: парсинг Excel КМД
+│   ├── migrations/              # Alembic миграции
+│   ├── docker-compose.yml
+│   ├── Dockerfile
+│   └── pyproject.toml
+│
+└── frontend/
+    └── src/
+        ├── pages/
+        │   ├── HomePage/        # Логин
+        │   ├── OrdersPage/      # Список заказов
+        │   ├── OrderDetailsPage/# Детали заказа (КМД, марки)
+        │   ├── QueuePrintPage/  # Очередь деталей в производство
+        │   ├── MaterialsPage/   # Склад и поставки
+        │   ├── EmployeesPage/   # Сотрудники
+        │   └── WorkJournalPage/ # Журнал работ
+        ├── components/          # Переиспользуемые компоненты
+        ├── api/                 # Axios-клиенты по модулям
+        ├── hooks/               # Custom hooks (infinite scroll и др.)
+        ├── utils/               # statusUtils, reportUtils
+        └── context/             # AuthContext
+```
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+---
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## Быстрый старт
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### Предварительные требования
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+- Docker ≥ 24
+- Docker Compose ≥ 2
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### 1. Клонирование
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```bash
+git clone https://github.com/rVladislavrr/orderhub_natstroi.git
+cd orderhub_natstroi
+```
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+### 2. Настройка переменных окружения
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+```bash
+cp backend/.env.example backend/.env
+```
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+Заполните `backend/.env` (см. [раздел ниже](#переменные-окружения)).
 
-## License
-For open source projects, say how it is licensed.
+### 3. Генерация JWT-ключей (RS256)
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+```bash
+mkdir -p backend/certs
+openssl genrsa -out backend/certs/jwt-private.pem 2048
+openssl rsa -in backend/certs/jwt-private.pem -pubout -out backend/certs/jwt-public.pem
+```
+
+### 4. Запуск
+
+```bash
+cd backend
+docker compose up -d --build
+```
+
+После запуска:
+- API доступен на `http://localhost:8000`
+- Swagger UI: `http://localhost:8000/docs`
+- Административная панель: `http://localhost:8000/admin`
+- GraphQL playground: `http://localhost:8000/graphql`
+
+### 5. Запуск frontend (для разработки)
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Frontend запустится на `http://localhost:3000`.
+
+---
+
+## Переменные окружения
+
+Файл `backend/.env`:
+
+```env
+# База данных PostgreSQL
+DB_HOST=postgres
+DB_PORT=5432
+DB_NAME=orderhub
+DB_USER=your_db_user
+DB_PASS=your_db_password
+
+# Redis
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=your_redis_password
+REDIS_USER_PASSWORD=your_redis_user_password
+REDIS_DB_SESSIONS=0
+REDIS_DB_CACHE=1
+REDIS_EXP=5
+
+# S3-совместимое хранилище (MinIO / Yandex Object Storage / AWS S3)
+S3_ACCESS_KEY=your_access_key
+S3_SECRET_KEY=your_secret_key
+S3_BUCKET_NAME=your_bucket_name
+S3_REGION=your_region
+S3_ENDPOINTPUT=https://your-s3-endpoint
+
+# Учётная запись администратора (создаётся автоматически при первом запуске)
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=your_admin_password
+
+# Логирование
+LOG_LEVEL=DEBUG
+```
+
+---
+
+## API
+
+Полная документация доступна в Swagger UI после запуска: `http://localhost:8000/docs`
+
+### Основные эндпоинты
+
+| Метод | Путь | Описание |
+|-------|------|----------|
+| `POST` | `/auth/login` | Вход в систему |
+| `POST` | `/auth/refresh` | Обновление токена |
+| `GET` | `/orders` | Список заказов |
+| `POST` | `/orders` | Создание заказа |
+| `GET` | `/orders/{uuid}` | Детали заказа |
+| `GET` | `/kmd` | Список КМД |
+| `POST` | `/kmd` | Создание КМД + загрузка Excel |
+| `GET` | `/marks` | Список марок |
+| `PATCH` | `/marks/{id}/assemble` | Отметить марку как собранную |
+| `POST` | `/delivery` | Регистрация поставки |
+| `GET` | `/materials` | Состояние склада |
+| `GET` | `/work` | Журнал работ |
+| `GET` | `/report` | Генерация отчёта |
+| `GET` | `/graphql` | GraphQL endpoint |
+
+---
+
+## Права доступа
+
+Каждому пользователю назначается строка прав из 4 символов (0/1/2), соответствующих категориям:
+
+| Позиция | Категория | 0 — нет доступа | 1 — чтение | 2 — запись |
+|---------|-----------|-----------------|------------|------------|
+| 1 | `storage` | — | Просмотр склада | Управление складом |
+| 2 | `order` | — | Просмотр заказов | Управление заказами |
+| 3 | `product` | — | Просмотр марок | Сборка/отгрузка |
+| 4 | `role` | — | Просмотр сотрудников | Управление сотрудниками |
+
+Пример: `"2210"` — полный доступ к складу и заказам, чтение марок, нет доступа к управлению сотрудниками.
+
+---
+
+## Автор
+
+**Владислав** — [rVladislavrr](https://github.com/rVladislavrr)
+
+Дипломная работа (ВКР). Система разработана для ООО «Настрой».
