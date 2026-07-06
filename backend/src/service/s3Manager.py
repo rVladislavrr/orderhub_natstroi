@@ -5,6 +5,7 @@ from botocore.exceptions import ClientError
 from fastapi import HTTPException, status
 from urllib.parse import quote
 from src.config import settings
+from botocore.config import Config
 
 s3_logger = logging.getLogger('s3 manager')
 
@@ -26,6 +27,7 @@ class S3Client:
             "aws_secret_access_key": secret_key,
             "endpoint_url": endpoint_url,
             "region_name": region_name,
+            "config": Config(s3={"addressing_style": "path"}),
         }
         self._session = get_session()
         await self._test_connection()

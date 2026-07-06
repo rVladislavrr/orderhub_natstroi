@@ -87,11 +87,11 @@ async def get_info(file_uuid: str, session: AsyncSession, request_id):
         log.error(f'{request_id}| Нужная информация не найдена {str(e)}')
         if fileORM:
             fileORM.status = FileStatus.ERROR
-            fileORM.comment = {
+            fileORM.comment = [{
                 'mark': '',
                 'detail': 'Ошибка в получении заказа из файла, фаил не привязан к заказу',
                 'num_details': ''
-            }
+            }]
             await session.commit()
         raise
 
@@ -115,7 +115,7 @@ async def get_file_in_df(file_uuid, request_id):
         await s3_client.connect(
             access_key=settings.S3_ACCESS_KEY,
             secret_key=settings.S3_SECRET_KEY,
-            endpoint_url=settings.S3_ENDPOINTPUT,
+            endpoint_url=settings.S3_ENDPOINT,
             region_name=settings.S3_REGION,
         )
         log.info(f'{request_id}| Успешно подключено к s3')
@@ -129,6 +129,7 @@ async def get_file_in_df(file_uuid, request_id):
                    'Вес 1 заг., кг': str},
             keep_default_na=False,
         )
+        await s3_client.delete_file(str(file_uuid), settings.S3_BUCKET_NAME, request_id)
     except HTTPException:
         try:
             await asyncio.sleep(2)

@@ -20,7 +20,7 @@ from src.models.delivery import DeliveryAllocation, DeliveryItem
 from src.shemas.pagination import PaginationInfo, PaginatedResponseOrder
 
 router = APIRouter(tags=["materials"])
-log = logging.getLogger('Мате роутер')
+log = logging.getLogger('Материал роутер')
 
 
 def _aggregate_rel_entries(

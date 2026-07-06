@@ -259,6 +259,7 @@ async def search_detail_numbers(
 )
 async def get_kmd_queues(
     kmd_uuid: UUID4,
+    num_detail: str | None = Query(None, description="Фильтр по номеру детали"),
     session: AsyncSession = Depends(get_async_session),
 ):
     stmt = (
@@ -271,4 +272,10 @@ async def get_kmd_queues(
         )
         .order_by(RelMarkaDel.que_num)
     )
+
+    if num_detail:
+        stmt = stmt.join(Details, Details.id == RelMarkaDel.details_id).where(
+            Details.num_detail == num_detail  # было ilike(f"%{num_detail}%")
+        )
+
     return (await session.execute(stmt)).scalars().all()

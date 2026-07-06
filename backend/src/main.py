@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
     await s3_client.connect(
         access_key=settings.S3_ACCESS_KEY,
         secret_key=settings.S3_SECRET_KEY,
-        endpoint_url=settings.S3_ENDPOINTPUT,
+        endpoint_url=settings.S3_ENDPOINT,
         region_name=settings.S3_REGION,
     )
     register_admin_views(admin)

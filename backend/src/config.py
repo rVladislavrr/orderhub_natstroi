@@ -9,7 +9,7 @@ class AuthJWT(BaseModel):
     private_key_path: Path = BASE_DIR / "certs" / "jwt-private.pem"
     public_key_path: Path = BASE_DIR / "certs" / "jwt-public.pem"
     algorithm: str = 'RS256'
-    access_token_expire_minutes: int = 360
+    access_token_expire_minutes: int = 5
     refresh_token_expire_days: int = 30
     # verify_token_expire_minutes: int = 15
     key_cookie: str = 'Auth-refresh'
@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     S3_SECRET_KEY: str
     S3_BUCKET_NAME: str
     S3_REGION: str
-    S3_ENDPOINTPUT: str
+    S3_ENDPOINT: str
 
     REDIS_HOST: str = '127.0.0.1'
     REDIS_PORT: int = 6379

@@ -29,11 +29,11 @@ async def read_tech_file(file_uuid, request_id):
             if fileORM:
                 log.error(f'{request_id}| Ошибка при скачивании файла', exc_info=e)
                 fileORM.status = FileStatus.ERROR
-                fileORM.comment = {
+                fileORM.comment = [{
                     'mark': '',
-                    'detail': 'Ошибка в обработке файла, файл не скачен',
+                    'detail': ['Ошибка в обработке файла, файл не скачен'],
                     'num_details': ''
-                }
+                }]
                 await session.commit()
             return
 
